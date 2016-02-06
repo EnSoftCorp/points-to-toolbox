@@ -6,6 +6,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
@@ -20,7 +21,8 @@ import com.ensoftcorp.open.pointsto.common.Constants;
  * Utilities for assisting in the computation of points-to sets.
  * 
  * @author Ben Holland
- * @author Tom Deering - Large credit for developing the conservative data flow graph
+ * @author Tom Deering - Large credit for developing the conservative data flow
+ *                       graph and utilities for resolving dynamic dispatches.
  */
 public class PointsToAnalysis {
 
@@ -50,6 +52,36 @@ public class PointsToAnalysis {
 	 */
 	public static GraphElement statedType(GraphElement ge){
 		return Common.universe().edgesTaggedWithAny(XCSG.TypeOf).successors(Common.toQ(ge)).eval().nodes().getFirst();
+	}
+	
+	/**
+	 * Given an array reference, returns a set of corresponding array accesses
+	 * @param arrayReference
+	 * @return
+	 */
+	public static AtlasSet<GraphElement> getArrayReadAccessesForArrayReference(GraphElement arrayReference) {
+		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
+		return arrayIdentityFor.successors(Common.toQ(arrayReference)).nodesTaggedWithAny(XCSG.ArrayRead).eval().nodes();
+	}
+	
+	/**
+	 * Given an array reference, returns a set of corresponding array accesses
+	 * @param arrayReference
+	 * @return
+	 */
+	public static AtlasSet<GraphElement> getArrayWriteAccessesForArrayReference(GraphElement arrayReference) {
+		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
+		return arrayIdentityFor.successors(Common.toQ(arrayReference)).nodesTaggedWithAny(XCSG.ArrayWrite).eval().nodes();
+	}
+	
+	/**
+	 * Given an array access, returns a set of corresponding array references
+	 * @param arrayAccess
+	 * @return
+	 */
+	public static AtlasSet<GraphElement> getArrayReferencesForArrayAccess(GraphElement arrayAccess){
+		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
+		return arrayIdentityFor.predecessors(Common.toQ(arrayAccess)).eval().nodes();
 	}
 	
 	/**
@@ -139,6 +171,43 @@ public class PointsToAnalysis {
 		}
 		
 		return Common.toQ(new NodeGraph(rootSet));
+	}
+	
+	/**
+	 * Returns a set of callsite this nodes involved in dynamic dispatches
+	 * 
+	 * @param m
+	 * @return
+	 */
+	public static AtlasHashSet<GraphElement> getDynamicCallsiteThisSet(IProgressMonitor monitor) {
+		Q resolvableCallsites = getResolvableCallsites(monitor);
+		Q unresolvableCallsites = Common.universe().nodesTaggedWithAny(XCSG.DynamicDispatchCallSite).difference(resolvableCallsites);
+		Q dfInvokeThisContext = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.IdentityPassedTo));
+		AtlasHashSet<GraphElement> dynamicCallsiteThis = new AtlasHashSet<GraphElement>(dfInvokeThisContext.predecessors(unresolvableCallsites).eval().nodes());
+		return dynamicCallsiteThis;
+	}
+	
+	/**
+	 * Given a set of methods, returns the given set with their method signature
+	 * elements (param, return, this).
+	 * 
+	 * @param methods
+	 * @param signatureSet
+	 */
+	public static AtlasSet<GraphElement> getSignatureSet(AtlasSet<GraphElement> methods){
+		Graph declaresGraph = Common.universe().edgesTaggedWithAny(XCSG.Contains).retainEdges().eval();
+		AtlasSet<GraphElement> signatureSet = new AtlasHashSet<GraphElement>();
+		for(GraphElement method : methods){
+			AtlasSet<GraphElement> cached = new AtlasHashSet<GraphElement>();
+			for(GraphElement outDeclares : declaresGraph.edges(method, NodeDirection.OUT)){
+				GraphElement declares = outDeclares.getNode(EdgeDirection.TO);
+				if(declares.taggedWith(XCSG.Parameter) || declares.taggedWith(XCSG.Identity) || declares.taggedWith(XCSG.ReturnValue)){
+					cached.add(declares);
+				}
+			}
+			signatureSet.addAll(cached);
+		}
+		return signatureSet;
 	}
 	
 }
