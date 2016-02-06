@@ -1,24 +1,54 @@
 package com.ensoftcorp.open.pointsto.analysis;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.pointsto.utilities.AddressFactory;
 import com.ensoftcorp.open.pointsto.utilities.PointsToAnalysis;
+import com.ensoftcorp.open.pointsto.utilities.frontier.FIFOFrontier;
+import com.ensoftcorp.open.pointsto.utilities.frontier.Frontier;
+
+import net.ontopia.utils.CompactHashMap;
 
 public class JimplePointsTo extends PointsTo {
 
-	private int id = 0;
+	/**
+	 * A factory class for producing new unique addresses
+	 */
+	private AddressFactory addressFactory = new AddressFactory();
+	
+	/**
+	 * Defines the address of the null type
+	 */
+	private final Long NULL_TYPE_ADDRESS = addressFactory.getNewAddress();
+	
+	/**
+	 * A mapping of addresses to types
+	 */
+	public CompactHashMap<Long,GraphElement> addressToType = new CompactHashMap<Long,GraphElement>();
+	
+	/**
+	 * A model for the contents of a particular array dimension. The model is
+	 * stored as a map of array references to a list of the contents of each
+	 * array dimension.
+	 * 
+	 * Since multi-dimensional arrays are actually arrays of arrays, two new
+	 * addresses should be created for "Foo[][] arr = new Foo[x][y]" (one for
+	 * each dimension of the array), such that address1->{address2},
+	 * address2->{nullType}, and address1 would have propagated from the
+	 * "new Foo[x][y]" array instantiation.
+	 */
+	public CompactHashMap<Long,HashSet<Long>> arrayMemoryModel = new CompactHashMap<Long,HashSet<Long>>();
+	
+	// a worklist of nodes to propagate information from
+	private Frontier<GraphElement> frontier = new FIFOFrontier<GraphElement>();
 	
 	// a set of assignment relationships
 	private Q dataFlowEdges = Common.universe().edgesTaggedWithAny(XCSG.LocalDataFlow, XCSG.InterproceduralDataFlow);
-	
-	// a worklist of nodes to propagate information from
-	private LinkedList<GraphElement> worklist = new LinkedList<GraphElement>();
 
 	@Override
 	protected void runAnalysis() {
@@ -29,15 +59,15 @@ public class JimplePointsTo extends PointsTo {
 		// the allocation site to the worklist to propagate 
 		// information forward from
 		for(GraphElement instantiation : instantiationNodes){
-			HashSet<Integer> pointsToIds = PointsToAnalysis.getPointsToSet(instantiation);
-			pointsToIds.add(id++);
-			worklist.add(instantiation);
+			HashSet<Long> pointsToIds = PointsToAnalysis.getPointsToSet(instantiation);
+			pointsToIds.add(addressFactory.getNewAddress());
+			frontier.add(instantiation);
 		}
 		
 		// keep propagating allocation ids forward along assignments
 		// until there is nothing more to propagate
-		while(!worklist.isEmpty()){
-			GraphElement from = worklist.removeFirst();
+		while(frontier.hasNext()){
+			GraphElement from = frontier.next();
 			propagatePointsTo(from);
 		}
 	}
@@ -51,13 +81,13 @@ public class JimplePointsTo extends PointsTo {
 	private void propagatePointsTo(GraphElement from){
 		AtlasSet<GraphElement> toNodes = dataFlowEdges.successors(Common.toQ(from)).eval().nodes();
 		for(GraphElement to : toNodes){
-			HashSet<Integer> fromPointsToSet = PointsToAnalysis.getPointsToSet(from);
-			HashSet<Integer> toPointsToSet = PointsToAnalysis.getPointsToSet(to);
+			HashSet<Long> fromPointsToSet = PointsToAnalysis.getPointsToSet(from);
+			HashSet<Long> toPointsToSet = PointsToAnalysis.getPointsToSet(to);
 			// if the to set learned something from the from set,
 			// then add the to node to the worklist because it may
 			// have something to teach its children
 			if(toPointsToSet.addAll(fromPointsToSet)){
-				worklist.add(to);
+				frontier.add(to);
 			}
 		}
 	}

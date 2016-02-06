@@ -5,6 +5,11 @@ import java.util.HashSet;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.open.pointsto.common.Constants;
 
+/**
+ * Utilities for assisting in the computation of points-to sets
+ * 
+ * @author Ben Holland
+ */
 public class PointsToAnalysis {
 
 	/**
@@ -15,11 +20,11 @@ public class PointsToAnalysis {
 	 * @return 
 	 */
 	@SuppressWarnings("unchecked")
-	public static HashSet<Integer> getPointsToSet(GraphElement ge){
+	public static HashSet<Long> getPointsToSet(GraphElement ge){
 		if(ge.hasAttr(Constants.POINTS_TO_SET)){
-			return (HashSet<Integer>) ge.getAttr(Constants.POINTS_TO_SET);
+			return (HashSet<Long>) ge.getAttr(Constants.POINTS_TO_SET);
 		} else {
-			HashSet<Integer> pointsToIds = new HashSet<Integer>();
+			HashSet<Long> pointsToIds = new HashSet<Long>();
 			ge.putAttr(Constants.POINTS_TO_SET, pointsToIds);
 			return pointsToIds;
 		}
