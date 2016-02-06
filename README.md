@@ -1,2 +1,2 @@
-# points-to-toolbox
-An Atlas native points-to analysis implementation and utility toolbox
+# Points-to Toolbox
+This repository contains an Atlas native points-to analysis implementation and utility toolbox to using the results.
