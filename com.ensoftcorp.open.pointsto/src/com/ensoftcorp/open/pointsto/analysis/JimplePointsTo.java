@@ -86,8 +86,8 @@ public class JimplePointsTo extends PointsTo {
 	
 	/**
 	 * This method seeds the frontier with null, object, array, primitive and
-	 * root set instantiations assigning a unique address to each and storing a
-	 * mapping of the address to the Object type.
+	 * external root set instantiations assigning a unique address to each and
+	 * storing a mapping of the address to the Object type.
 	 * 
 	 * Note: Root set instantiations are the set of instantiations made outside
 	 * the observable world such as the arguments array passed to a main method
@@ -100,7 +100,7 @@ public class JimplePointsTo extends PointsTo {
 		
 		// TODO: consider primitives and String literals
 		
-		// TODO: consider root set objects
+		// TODO: consider external root set objects
 		
 		// create unique addresses for types of new statements and array instantiations
 		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation);
