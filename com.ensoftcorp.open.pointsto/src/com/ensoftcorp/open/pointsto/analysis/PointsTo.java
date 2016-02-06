@@ -2,6 +2,12 @@ package com.ensoftcorp.open.pointsto.analysis;
 
 import com.ensoftcorp.atlas.core.log.Log;
 
+/**
+ * An abstract class defining the features that a points-to analyzer should
+ * implement.
+ * 
+ * @author Ben Holland
+ */
 public abstract class PointsTo {
 
 	private boolean hasRun = false;

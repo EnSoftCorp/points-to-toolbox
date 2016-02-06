@@ -3,6 +3,13 @@ package com.ensoftcorp.open.pointsto.utilities.frontier;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
+/**
+ * A First In First Out based worklist
+ * 
+ * @author Ben Holland
+ *
+ * @param <E>
+ */
 public class FIFOFrontier<E> implements Frontier<E> {
 
 	private LinkedHashSet<E> frontier;

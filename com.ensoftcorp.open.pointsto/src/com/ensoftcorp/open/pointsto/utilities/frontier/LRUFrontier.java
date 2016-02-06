@@ -3,6 +3,13 @@ package com.ensoftcorp.open.pointsto.utilities.frontier;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
+/**
+ * A Least Recently Used based worklist
+ * 
+ * @author Ben Holland
+ *
+ * @param <E>
+ */
 public class LRUFrontier<E> implements Frontier<E> {
 
 	private LinkedHashSet<E> frontier;

@@ -9,6 +9,12 @@ import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.pointsto.utilities.PointsToAnalysis;
 import com.ensoftcorp.open.toolbox.commons.FormattedSourceCorrespondence;
 
+/**
+ * Provides client access to the results of points-to analysis and some
+ * statistics utilities
+ * 
+ * @author Ben Holland
+ */
 public class PointsToResults {
 
 	/**

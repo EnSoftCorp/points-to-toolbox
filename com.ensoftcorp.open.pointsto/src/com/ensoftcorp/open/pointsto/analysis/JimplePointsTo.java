@@ -6,6 +6,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.log.Log;
@@ -21,6 +22,11 @@ import com.ensoftcorp.open.pointsto.utilities.frontier.Frontier;
 
 import net.ontopia.utils.CompactHashMap;
 
+/**
+ * A fixed point points-to analysis for Jimple
+ * 
+ * @author Ben Holland
+ */
 public class JimplePointsTo extends PointsTo {
 
 	/**
@@ -76,9 +82,24 @@ public class JimplePointsTo extends PointsTo {
 
 	@Override
 	protected void runAnalysis() {
+		// initialize caches
 		IProgressMonitor monitor = new org.eclipse.core.runtime.NullProgressMonitor();
 		subtypes = new SubtypeCache(monitor);
+		
+		// seed the frontier with the set of instantiations
 		seedFrontier();
+		
+		// create the initial underlying data flow graph that will get dynamically
+		// updated as new dynamic dispatches are resolved
+		Q conservativeDF = PointsToAnalysis.getConservativeDataFlow(monitor);
+		dfEdges = new AtlasHashSet<GraphElement>();
+		dfEdges.addAll(conservativeDF.eval().edges());
+		dfNodes = new AtlasHashSet<GraphElement>();
+		dfNodes.addAll(conservativeDF.eval().nodes());
+		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
+		
+		// iteratively propagate points-to information until a fixed point is reached
+		
 	}
 	
 	/**

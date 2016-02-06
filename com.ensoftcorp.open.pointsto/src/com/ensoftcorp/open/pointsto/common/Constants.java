@@ -1,5 +1,10 @@
 package com.ensoftcorp.open.pointsto.common;
 
+/**
+ * Some defined attributes and tags used by the points-to analyses
+ * 
+ * @author Ben Holland
+ */
 public class Constants {
 
 	/**

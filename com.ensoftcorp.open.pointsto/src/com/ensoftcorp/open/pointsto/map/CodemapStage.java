@@ -6,6 +6,12 @@ import com.ensoftcorp.atlas.core.indexing.providers.ToolboxIndexingStage;
 import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.open.pointsto.analysis.JimplePointsTo;
 
+/**
+ * A hook for automatically running points-to analysis with the user's
+ * preferences after Atlas creates a program graph
+ * 
+ * @author Ben Holland
+ */
 public class CodemapStage implements ToolboxIndexingStage {
 
 	@Override
