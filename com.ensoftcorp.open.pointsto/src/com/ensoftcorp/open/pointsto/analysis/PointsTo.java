@@ -25,7 +25,7 @@ public abstract class PointsTo {
 	}
 	
 	/**
-	 * Runs the points to analysis
+	 * Runs the fixed-point points-to analysis algorithm
 	 */
 	protected abstract void runAnalysis();
 	

@@ -3,6 +3,10 @@ package com.ensoftcorp.open.pointsto.utilities;
 import java.util.HashSet;
 
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.atlas.core.query.Attr.Node;
+import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.pointsto.common.Constants;
 
 /**
@@ -28,6 +32,27 @@ public class PointsToAnalysis {
 			ge.putAttr(Constants.POINTS_TO_SET, pointsToIds);
 			return pointsToIds;
 		}
+	}
+	
+	/**
+	 * Given an object reference, return the stated type of that reference.
+	 * 
+	 * @param ge
+	 * @return
+	 */
+	public static GraphElement statedType(GraphElement ge){
+		return Common.universe().edgesTaggedWithAny(XCSG.TypeOf).successors(Common.toQ(ge)).eval().nodes().getFirst();
+	}
+	
+	/**
+	 * Given an array element type, return the array type for the given dimension
+	 * @param arrayElementType
+	 * @param dimension
+	 * @return
+	 */
+	public static GraphElement getArrayTypeForDimension(GraphElement arrayElementType, int dimension){
+		Q arrayTypes = Common.universe().edgesTaggedWithAny(XCSG.ArrayElementType).predecessors(Common.toQ(arrayElementType));
+		return arrayTypes.selectNode(Node.DIMENSION, dimension).eval().nodes().getFirst();
 	}
 	
 }
