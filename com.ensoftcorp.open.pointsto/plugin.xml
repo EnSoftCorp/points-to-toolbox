@@ -8,5 +8,12 @@
             class="com.ensoftcorp.open.pointsto.map.CodemapStage">
       </indexer>
    </extension>
+   
+    <extension
+         point="com.ensoftcorp.atlas.ui.smartViewScript">
+      <script
+            class="com.ensoftcorp.open.pointsto.ui.smart.PointsToSmartView">
+      </script>
+   </extension>
 
 </plugin>

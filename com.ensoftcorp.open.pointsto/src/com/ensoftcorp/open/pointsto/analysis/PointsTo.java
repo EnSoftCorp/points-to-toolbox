@@ -1,6 +1,11 @@
 package com.ensoftcorp.open.pointsto.analysis;
 
+import java.util.HashSet;
+import java.util.Map;
+
+import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.log.Log;
+import com.ensoftcorp.atlas.core.query.Q;
 
 /**
  * An abstract class defining the features that a points-to analyzer should
@@ -34,5 +39,29 @@ public abstract class PointsTo {
 	 * Runs the fixed-point points-to analysis algorithm
 	 */
 	protected abstract void runAnalysis();
+	
+	/**
+	 * Returns a convenience mapping of arrays to the array's components
+	 * @return
+	 */
+	public abstract Map<Long, HashSet<Long>> getArrayMemoryModel();
+	
+	/**
+	 * Returns a convenience mapping of an address to its corresponding instantiation
+	 * @return
+	 */
+	public abstract Map<Long, GraphElement> getAddressToInstantiation();
+
+	/**
+	 * Returns a convenience mapping of an address to its corresponding static type
+	 * @return
+	 */
+	public abstract Map<Long, GraphElement> getAddressToType();
+	
+	/**
+	 * Returns the inferred data flow graph as the results of the fixed point analysis
+	 * @return
+	 */
+	public abstract Q getInferredDataFlowGraph();
 	
 }

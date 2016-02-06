@@ -37,7 +37,7 @@ public class JimplePointsTo extends PointsTo {
 	/**
 	 * A factory class for producing new unique addresses
 	 */
-	private AddressFactory addressFactory = new AddressFactory();
+	private final AddressFactory addressFactory = new AddressFactory();
 	
 	/**
 	 * Defines the address of the null type
@@ -45,9 +45,49 @@ public class JimplePointsTo extends PointsTo {
 	private final Long NULL_TYPE_ADDRESS = addressFactory.getNewAddress();
 	
 	/**
-	 * A mapping of addresses to types
+	 * A convenience mapping of the addresses to instantiations
 	 */
-	private CompactHashMap<Long,GraphElement> addressToType = new CompactHashMap<Long,GraphElement>();
+	private final CompactHashMap<Long,GraphElement> addressToInstantiation = new CompactHashMap<Long,GraphElement>();
+
+	@Override
+	public CompactHashMap<Long, GraphElement> getAddressToInstantiation() {
+		CompactHashMap<Long,GraphElement> result = new CompactHashMap<Long,GraphElement>();
+		for(Long key : addressToInstantiation.keySet()){
+			Long address = key;
+			result.put(address, addressToInstantiation.get(key));
+		}
+		return result;
+	}
+	
+	/**
+	 * A convenience mapping of addresses to types
+	 */
+	private final CompactHashMap<Long,GraphElement> addressToType = new CompactHashMap<Long,GraphElement>();
+	
+	@Override
+	public CompactHashMap<Long, GraphElement> getAddressToType() {
+		CompactHashMap<Long,GraphElement> result = new CompactHashMap<Long,GraphElement>();
+		for(Long key : addressToType.keySet()){
+			Long address = key;
+			result.put(address, addressToType.get(key));
+		}
+		return result;
+	}
+	
+	/**
+	 * A worklist of nodes containing points-to information to propagate
+	 */
+	private final Frontier<GraphElement> frontier = new FIFOFrontier<GraphElement>();
+	
+	/**
+	 * A progress monitor for use with resolving sets
+	 */
+	private final IProgressMonitor monitor = new org.eclipse.core.runtime.NullProgressMonitor();
+	
+	/**
+	 * Cached supertype relations for concrete types
+	 */
+	private final SubtypeCache subtypes = new SubtypeCache(monitor);
 	
 	/**
 	 * A model for the contents of a particular array dimension. The model is
@@ -60,8 +100,20 @@ public class JimplePointsTo extends PointsTo {
 	 * address2->{nullType}, and address1 would have propagated from the
 	 * "new Foo[x][y]" array instantiation.
 	 */
-	private CompactHashMap<Long,HashSet<Long>> arrayMemoryModel = new CompactHashMap<Long,HashSet<Long>>();
+	private final CompactHashMap<Long,HashSet<Long>> arrayMemoryModel = new CompactHashMap<Long,HashSet<Long>>();
 	
+	@Override
+	public CompactHashMap<Long, HashSet<Long>> getArrayMemoryModel() {
+		CompactHashMap<Long,HashSet<Long>> result = new CompactHashMap<Long,HashSet<Long>>();
+		for(Long key : arrayMemoryModel.keySet()){
+			Long address = key;
+			HashSet<Long> addresses = new HashSet<Long>();
+			addresses.addAll(arrayMemoryModel.get(key));
+			result.put(address, addresses);
+		}
+		return result;
+	}
+
 	/*
 	 * The underlying data flow graph used to propagate points-to information.
 	 * 
@@ -74,15 +126,10 @@ public class JimplePointsTo extends PointsTo {
 	private AtlasSet<GraphElement> dfNodes = new AtlasHashSet<GraphElement>();
 	private AtlasSet<GraphElement> dfEdges = new AtlasHashSet<GraphElement>();
 	
-	/**
-	 * A worklist of nodes containing points-to information to propagate
-	 */
-	private Frontier<GraphElement> frontier = new FIFOFrontier<GraphElement>();
-	
-	/**
-	 * Cached supertype relations for concrete types
-	 */
-	private SubtypeCache subtypes;
+	@Override
+	public Q getInferredDataFlowGraph() {
+		return Common.resolve(monitor, Common.toQ(dfGraph));
+	}
 	
 	/**
 	 * This method seeds the frontier with null, object, array, primitive and
@@ -95,7 +142,9 @@ public class JimplePointsTo extends PointsTo {
 	 */
 	private void seedFrontier() {
 		// set the first address (address 0) to be the null type
+		// technically there is no instantiation of null, but it can be useful to treat is as one
 		GraphElement nullType = Common.universe().nodesTaggedWithAny(XCSG.Java.NullType).eval().nodes().getFirst();
+		addressToInstantiation.put(NULL_TYPE_ADDRESS, nullType);
 		addressToType.put(NULL_TYPE_ADDRESS, nullType);
 		
 		// TODO: consider primitives and String literals
@@ -111,7 +160,9 @@ public class JimplePointsTo extends PointsTo {
 				// mapping from the address to the state type
 				Long address = addressFactory.getNewAddress();
 				PointsToAnalysis.getPointsToSet(newRef).add(address);
+				addressToInstantiation.put(address, newRef);
 				addressToType.put(address, statedType);
+				
 				// if this is an array instantiation then we should create an
 				// array memory model and addresses for array memory references
 				// of each array dimension of the array
@@ -123,6 +174,7 @@ public class JimplePointsTo extends PointsTo {
 					for(int i=arrayDimension-1; i>0; i--){
 						// map array dimension address to array dimension type
 						Long arrayDimensionAddress = addressFactory.getNewAddress();
+						addressToInstantiation.put(arrayDimensionAddress, newRef);
 						arrayType = PointsToAnalysis.getArrayTypeForDimension(arrayElementType, i);
 						addressToType.put(arrayDimensionAddress, arrayType);
 						// map address containing dimension to array dimension, address1 -> set: { address2 }
@@ -178,10 +230,6 @@ public class JimplePointsTo extends PointsTo {
 	 */
 	@Override
 	protected void runAnalysis() {
-		// initialize caches
-		IProgressMonitor monitor = new org.eclipse.core.runtime.NullProgressMonitor();
-		subtypes = new SubtypeCache(monitor);
-		
 		// seed the frontier with the set of instantiations
 		seedFrontier();
 		

@@ -5,6 +5,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import com.ensoftcorp.atlas.core.indexing.providers.ToolboxIndexingStage;
 import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.open.pointsto.analysis.JimplePointsTo;
+import com.ensoftcorp.open.pointsto.common.PointsToResults;
 
 /**
  * A hook for automatically running points-to analysis with the user's
@@ -24,10 +25,13 @@ public class CodemapStage implements ToolboxIndexingStage {
 		try {
 			JimplePointsTo jimplePointsTo = new JimplePointsTo();
 			jimplePointsTo.run();
+			PointsToResults.addressToInstantiation = jimplePointsTo.getAddressToInstantiation();
+			PointsToResults.addressToType = jimplePointsTo.getAddressToType();
+			PointsToResults.arrayMemoryModel = jimplePointsTo.getArrayMemoryModel();
+			PointsToResults.inferredDataFlowGraph = jimplePointsTo.getInferredDataFlowGraph();
 		} catch (Exception e) {
 			Log.error("Error performing points-to analysis", e);
 		}
-
 	}
 
 }

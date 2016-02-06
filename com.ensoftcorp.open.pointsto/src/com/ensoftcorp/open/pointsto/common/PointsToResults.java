@@ -1,9 +1,13 @@
 package com.ensoftcorp.open.pointsto.common;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.pointsto.utilities.PointsToAnalysis;
@@ -17,6 +21,28 @@ import com.ensoftcorp.open.toolbox.commons.FormattedSourceCorrespondence;
  */
 public class PointsToResults {
 
+	public static Map<Long, HashSet<Long>> arrayMemoryModel;
+	public static Map<Long, GraphElement> addressToInstantiation;
+	public static Map<Long, GraphElement> addressToType;
+	public static Q inferredDataFlowGraph;
+	
+	/**
+	 * Returns the points-to address set for a given data flow node
+	 * @param ge
+	 * @return
+	 */
+	public static Set<Long> getPointsToSet(GraphElement ge){
+		if(ge.hasAttr(Constants.POINTS_TO_SET)){
+			HashSet<Long> result = new HashSet<Long>();
+			for(Long address : PointsToAnalysis.getPointsToSet(ge)){
+				result.add(address);
+			}
+			return result;
+		} else {
+			return new HashSet<Long>();
+		}
+	}
+	
 	/**
 	 * Computes the average size of each points to set
 	 * @return
