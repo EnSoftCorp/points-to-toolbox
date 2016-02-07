@@ -51,12 +51,13 @@ public class JimplePointsTo extends PointsTo {
 
 	@Override
 	public CompactHashMap<Long, GraphElement> getAddressToInstantiation() {
-		CompactHashMap<Long,GraphElement> result = new CompactHashMap<Long,GraphElement>();
-		for(Long key : addressToInstantiation.keySet()){
-			Long address = key;
-			result.put(address, addressToInstantiation.get(key));
-		}
-		return result;
+//		CompactHashMap<Long,GraphElement> result = new CompactHashMap<Long,GraphElement>();
+//		for(Long key : addressToInstantiation.keySet()){
+//			Long address = key;
+//			result.put(address, addressToInstantiation.get(key));
+//		}
+//		return result;
+		return addressToInstantiation;
 	}
 	
 	/**
@@ -66,12 +67,13 @@ public class JimplePointsTo extends PointsTo {
 	
 	@Override
 	public CompactHashMap<Long, GraphElement> getAddressToType() {
-		CompactHashMap<Long,GraphElement> result = new CompactHashMap<Long,GraphElement>();
-		for(Long key : addressToType.keySet()){
-			Long address = key;
-			result.put(address, addressToType.get(key));
-		}
-		return result;
+//		CompactHashMap<Long,GraphElement> result = new CompactHashMap<Long,GraphElement>();
+//		for(Long key : addressToType.keySet()){
+//			Long address = key;
+//			result.put(address, addressToType.get(key));
+//		}
+//		return result;
+		return addressToType;
 	}
 	
 	/**
@@ -104,14 +106,15 @@ public class JimplePointsTo extends PointsTo {
 	
 	@Override
 	public CompactHashMap<Long, HashSet<Long>> getArrayMemoryModel() {
-		CompactHashMap<Long,HashSet<Long>> result = new CompactHashMap<Long,HashSet<Long>>();
-		for(Long key : arrayMemoryModel.keySet()){
-			Long address = key;
-			HashSet<Long> addresses = new HashSet<Long>();
-			addresses.addAll(arrayMemoryModel.get(key));
-			result.put(address, addresses);
-		}
-		return result;
+//		CompactHashMap<Long,HashSet<Long>> result = new CompactHashMap<Long,HashSet<Long>>();
+//		for(Long key : arrayMemoryModel.keySet()){
+//			Long address = key;
+//			HashSet<Long> addresses = new HashSet<Long>();
+//			addresses.addAll(arrayMemoryModel.get(key));
+//			result.put(address, addresses);
+//		}
+//		return result;
+		return arrayMemoryModel;
 	}
 
 	/*

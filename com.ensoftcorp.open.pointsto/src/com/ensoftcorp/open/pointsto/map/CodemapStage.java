@@ -23,12 +23,12 @@ public class CodemapStage implements ToolboxIndexingStage {
 	@Override
 	public void performIndexing(IProgressMonitor monitor) {
 		try {
-			JimplePointsTo jimplePointsTo = new JimplePointsTo();
-			jimplePointsTo.run();
-			PointsToResults.addressToInstantiation = jimplePointsTo.getAddressToInstantiation();
-			PointsToResults.addressToType = jimplePointsTo.getAddressToType();
-			PointsToResults.arrayMemoryModel = jimplePointsTo.getArrayMemoryModel();
-			PointsToResults.inferredDataFlowGraph = jimplePointsTo.getInferredDataFlowGraph();
+//			JimplePointsTo jimplePointsTo = new JimplePointsTo();
+//			jimplePointsTo.run();
+//			PointsToResults.addressToInstantiation = jimplePointsTo.getAddressToInstantiation();
+//			PointsToResults.addressToType = jimplePointsTo.getAddressToType();
+//			PointsToResults.arrayMemoryModel = jimplePointsTo.getArrayMemoryModel();
+//			PointsToResults.inferredDataFlowGraph = jimplePointsTo.getInferredDataFlowGraph();
 		} catch (Exception e) {
 			Log.error("Error performing points-to analysis", e);
 		}

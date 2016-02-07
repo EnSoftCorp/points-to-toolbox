@@ -20,7 +20,7 @@ import com.ensoftcorp.open.toolbox.commons.FormattedSourceCorrespondence;
  * @author Ben Holland
  */
 public class PointsToResults {
-
+	
 	public static Map<Long, HashSet<Long>> arrayMemoryModel;
 	public static Map<Long, GraphElement> addressToInstantiation;
 	public static Map<Long, GraphElement> addressToType;

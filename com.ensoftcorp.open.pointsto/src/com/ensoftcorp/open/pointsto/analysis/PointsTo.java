@@ -18,6 +18,14 @@ public abstract class PointsTo {
 	private boolean hasRun = false;
 	
 	/**
+	 * Returns true if the points-to analysis has completed
+	 * @return
+	 */
+	public boolean hasRun(){
+		return hasRun;
+	}
+	
+	/**
 	 * Runs the points to analysis (if it hasn't been run already)
 	 * and returns the time in milliseconds to complete the analysis
 	 * @return
