@@ -18,7 +18,7 @@ import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.pointsto.common.PointsToResults;
 
-public class PointsToSmartView extends FilteringAtlasSmartViewScript implements IResizableScript {
+public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript implements IResizableScript {
 
 	@Override
 	protected String[] getSupportedNodeTags() {
@@ -32,19 +32,21 @@ public class PointsToSmartView extends FilteringAtlasSmartViewScript implements 
 	
 	@Override
 	public String getTitle() {
-		return "Points-to";
+		return "Points-to Aliases";
 	}
 
 	@Override
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
 		Q filteredSelection = filter(event.getSelection());
 
+		PointsToResults pointsToResults = new PointsToResults();
+
 		// for each selected graph element get the corresponding instantiation
 		// as determined by the points-to analysis
 		AtlasSet<GraphElement> instantiationSet = new AtlasHashSet<GraphElement>();
 		for(GraphElement ge : filteredSelection.eval().nodes()){
 			for(Long address : PointsToResults.getPointsToSet(ge)){
-				GraphElement instantiation = PointsToResults.addressToInstantiation.get(address);
+				GraphElement instantiation = pointsToResults.addressToInstantiation.get(address);
 				if(instantiation != null){
 					instantiationSet.add(instantiation);
 				} else {
@@ -62,13 +64,14 @@ public class PointsToSmartView extends FilteringAtlasSmartViewScript implements 
 		// and the points-to instantiations highlighted red, with inferred
 		// data flow edges between the instantiations and the selections
 		// by default the data flow edges are not shown until forward/backward
-		// steps are increased
-		Q completeResult = PointsToResults.inferredDataFlowGraph.forward(instantations).intersection(PointsToResults.inferredDataFlowGraph.reverse(filteredSelection));
+		// steps are increased. Union instantiations in, for null's since they
+		// won't have a between edge
+		Q completeResult = instantations.union(pointsToResults.inferredDataFlowGraph.forward(instantations).intersection(pointsToResults.inferredDataFlowGraph.reverse(filteredSelection)));
 		
 		// compute what to show for current steps
 		Q f = instantations.forwardStepOn(completeResult, forward);
 		Q r = filteredSelection.reverseStepOn(completeResult, reverse);
-		Q result = f.intersection(r);
+		Q result = f.union(r);
 		
 		// compute what is on the frontier
 		Q frontierForward = instantations.forwardStepOn(completeResult, forward+1);

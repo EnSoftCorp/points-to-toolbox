@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.pointsto.analysis;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -50,14 +51,13 @@ public class JimplePointsTo extends PointsTo {
 	private final CompactHashMap<Long,GraphElement> addressToInstantiation = new CompactHashMap<Long,GraphElement>();
 
 	@Override
-	public CompactHashMap<Long, GraphElement> getAddressToInstantiation() {
-//		CompactHashMap<Long,GraphElement> result = new CompactHashMap<Long,GraphElement>();
-//		for(Long key : addressToInstantiation.keySet()){
-//			Long address = key;
-//			result.put(address, addressToInstantiation.get(key));
-//		}
-//		return result;
-		return addressToInstantiation;
+	public HashMap<Long, GraphElement> getAddressToInstantiation() {
+		HashMap<Long,GraphElement> result = new HashMap<Long,GraphElement>();
+		for(Long key : addressToInstantiation.keySet()){
+			Long address = key;
+			result.put(address, addressToInstantiation.get(key));
+		}
+		return result;
 	}
 	
 	/**
@@ -66,14 +66,13 @@ public class JimplePointsTo extends PointsTo {
 	private final CompactHashMap<Long,GraphElement> addressToType = new CompactHashMap<Long,GraphElement>();
 	
 	@Override
-	public CompactHashMap<Long, GraphElement> getAddressToType() {
-//		CompactHashMap<Long,GraphElement> result = new CompactHashMap<Long,GraphElement>();
-//		for(Long key : addressToType.keySet()){
-//			Long address = key;
-//			result.put(address, addressToType.get(key));
-//		}
-//		return result;
-		return addressToType;
+	public HashMap<Long, GraphElement> getAddressToType() {
+		HashMap<Long,GraphElement> result = new HashMap<Long,GraphElement>();
+		for(Long key : addressToType.keySet()){
+			Long address = key;
+			result.put(address, addressToType.get(key));
+		}
+		return result;
 	}
 	
 	/**
@@ -105,16 +104,15 @@ public class JimplePointsTo extends PointsTo {
 	private final CompactHashMap<Long,HashSet<Long>> arrayMemoryModel = new CompactHashMap<Long,HashSet<Long>>();
 	
 	@Override
-	public CompactHashMap<Long, HashSet<Long>> getArrayMemoryModel() {
-//		CompactHashMap<Long,HashSet<Long>> result = new CompactHashMap<Long,HashSet<Long>>();
-//		for(Long key : arrayMemoryModel.keySet()){
-//			Long address = key;
-//			HashSet<Long> addresses = new HashSet<Long>();
-//			addresses.addAll(arrayMemoryModel.get(key));
-//			result.put(address, addresses);
-//		}
-//		return result;
-		return arrayMemoryModel;
+	public HashMap<Long, HashSet<Long>> getArrayMemoryModel() {
+		HashMap<Long,HashSet<Long>> result = new HashMap<Long,HashSet<Long>>();
+		for(Long key : arrayMemoryModel.keySet()){
+			Long address = key;
+			HashSet<Long> addresses = new HashSet<Long>();
+			addresses.addAll(arrayMemoryModel.get(key));
+			result.put(address, addresses);
+		}
+		return result;
 	}
 
 	/*

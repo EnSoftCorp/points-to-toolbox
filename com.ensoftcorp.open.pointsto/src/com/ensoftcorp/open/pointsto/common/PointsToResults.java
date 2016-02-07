@@ -20,11 +20,30 @@ import com.ensoftcorp.open.toolbox.commons.FormattedSourceCorrespondence;
  * @author Ben Holland
  */
 public class PointsToResults {
+
+	@SuppressWarnings("unchecked")
+	public PointsToResults() {
+		// TODO: remove super nasty hack workaround for class loader issues...
+		GraphElement pointsToResults = Common.universe().nodesTaggedWithAny("points-to-results").eval().nodes().getFirst();
+		addressToInstantiation = (Map<Long, GraphElement>) pointsToResults.getAttr("addressToInstantiation");
+		addressToType = (Map<Long, GraphElement>) pointsToResults.getAttr("addressToType");
+		arrayMemoryModel = (Map<Long, HashSet<Long>>) pointsToResults.getAttr("arrayMemoryModel");
+		inferredDataFlowGraph = (Q) pointsToResults.getAttr("inferredDataFlowGraph");
+	}
+
+//	private static PointsToResults instance = null;
+//
+//	public static PointsToResults getInstance() {
+//		if (instance == null) {
+//			instance = new PointsToResults();
+//		}
+//		return instance;
+//	}
 	
-	public static Map<Long, HashSet<Long>> arrayMemoryModel;
-	public static Map<Long, GraphElement> addressToInstantiation;
-	public static Map<Long, GraphElement> addressToType;
-	public static Q inferredDataFlowGraph;
+	public Map<Long, GraphElement> addressToInstantiation;
+	public Map<Long, GraphElement> addressToType;
+	public Map<Long, HashSet<Long>> arrayMemoryModel;
+	public Q inferredDataFlowGraph;
 	
 	/**
 	 * Returns the points-to address set for a given data flow node

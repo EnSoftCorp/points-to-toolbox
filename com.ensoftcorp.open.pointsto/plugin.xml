@@ -12,7 +12,10 @@
     <extension
          point="com.ensoftcorp.atlas.ui.smartViewScript">
       <script
-            class="com.ensoftcorp.open.pointsto.ui.smart.PointsToSmartView">
+            class="com.ensoftcorp.open.pointsto.ui.smart.PointsToAliasesSmartView">
+      </script>
+      <script
+            class="com.ensoftcorp.open.pointsto.ui.smart.PointsToInstantiationsSmartView">
       </script>
    </extension>
 

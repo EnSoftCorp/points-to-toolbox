@@ -1,4 +1,4 @@
-package com.ensoftcorp.open;
+package com.ensoftcorp.open.pointsto;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;

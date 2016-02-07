@@ -12,4 +12,10 @@ public class Constants {
 	 */
 	public static final String POINTS_TO_SET = "points-to";
 	
+	/**
+	 * Applied to edges to indicate that the edge's runtime possibility was
+	 * verified by the points-to analysis
+	 */
+	public static final String INFERRED = "inferred";
+	
 }
