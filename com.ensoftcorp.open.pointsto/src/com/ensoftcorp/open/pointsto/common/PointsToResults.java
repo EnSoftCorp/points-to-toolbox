@@ -1,11 +1,14 @@
 package com.ensoftcorp.open.pointsto.common;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
@@ -78,18 +81,65 @@ public class PointsToResults {
 	}
 	
 	/**
-	 * Returns an entry in the points to table as a string
-	 * @param ge
-	 * @return
-	 * @throws IOException 
+	 * Dumps the entire points-to set to two tables
+	 * @param instatiationsFile
+	 * @param aliasesFile
+	 * @throws IOException
 	 */
-	public static String getPointsToTableEntry(GraphElement ge) throws IOException {
-		FormattedSourceCorrespondence fsc = FormattedSourceCorrespondence.getSourceCorrespondent(ge);
-		String file = fsc.getRelativeFile();
-		String line = fsc.getLineNumbers();
-		String variable = ge.getAttr(XCSG.name).toString();
-		String pointsTo = PointsToAnalysis.getPointsToSet(ge).toString();
-		return file + "," + line + "," + variable + "," + pointsTo;
+	public void dumpPointsToTables(File instatiationsFile, File aliasesFile) throws IOException {
+		// write out instantiations table
+		FileWriter instantiations = new FileWriter(instatiationsFile);
+		AtlasSet<GraphElement> allInstantiations = new AtlasHashSet<GraphElement>();
+		instantiations.write("Allocation Identifier,File Name,Line Number,Type\n");
+		Long numAddresses = (long) addressToInstantiation.keySet().size();
+		for(Long address=0L; address<numAddresses; address++){
+			GraphElement instantiation = addressToInstantiation.get(address);
+			allInstantiations.add(instantiation);
+			FormattedSourceCorrespondence fsc = FormattedSourceCorrespondence.getSourceCorrespondent(instantiation);
+			String file;
+			String line;
+			try {
+				file = fsc.getRelativeFile();
+				line = fsc.getLineNumbers();
+			} catch (Exception e){
+				line = "N/A";
+				try {
+					file = fsc.getFile().getName();
+				} catch (Exception e2){
+					file = "N/A";
+				}
+			}
+			String type = addressToType.get(address).getAttr(XCSG.name).toString();
+			instantiations.write(address + "," + file + "," + line + "," + type + "\n");
+		}
+		instantiations.close();
+		
+		// write out the alias points-to table
+		FileWriter aliases = new FileWriter(aliasesFile);
+		aliases.write("File Name,Line Number,Variable,Points-to-set\n");
+		AtlasSet<GraphElement> aliasNodes = Common.universe().selectNode(Constants.POINTS_TO_SET)
+				.difference(Common.toQ(allInstantiations), Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents))
+				.eval().nodes();
+		for(GraphElement alias : aliasNodes){
+			FormattedSourceCorrespondence fsc = FormattedSourceCorrespondence.getSourceCorrespondent(alias);
+			String file;
+			String line;
+			try {
+				file = fsc.getRelativeFile();
+				line = fsc.getLineNumbers();
+			} catch (Exception e){
+				line = "N/A";
+				try {
+					file = fsc.getFile().getName();
+				} catch (Exception e2){
+					file = "N/A";
+				}
+			}
+			String name = alias.getAttr(XCSG.name).toString();
+			String pointsTo = PointsToResults.getPointsToSet(alias).toString();
+			aliases.write(file + "," + line + "," + name + ",\"" + pointsTo + "\"\n");
+		}
+		aliases.close();
 	}
 	
 }
