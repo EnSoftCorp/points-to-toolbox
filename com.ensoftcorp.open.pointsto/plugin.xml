@@ -15,7 +15,10 @@
             class="com.ensoftcorp.open.pointsto.ui.smart.PointsToAliasesSmartView">
       </script>
       <script
-            class="com.ensoftcorp.open.pointsto.ui.smart.PointsToInstantiationsSmartView">
+            class="com.ensoftcorp.open.pointsto.ui.smart.PointsToArrayComponentAliasesSmartView">
+      </script>
+      <script
+            class="com.ensoftcorp.open.pointsto.ui.smart.PointsToArrayComponentSmartView">
       </script>
    </extension>
 

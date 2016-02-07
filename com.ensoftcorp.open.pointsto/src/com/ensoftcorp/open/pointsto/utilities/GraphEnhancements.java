@@ -73,6 +73,8 @@ public class GraphEnhancements {
 		}
 	}
 	
+	private static int arrayNumber = 1;
+	
 	private static GraphElement findOrCreateArrayComponent(Long address){
 		AtlasSet<GraphElement> arrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).selectNode(Constants.POINTS_TO_SET).eval().nodes();
 		for(GraphElement arrayComponent : arrayComponents){
@@ -84,7 +86,10 @@ public class GraphEnhancements {
 		GraphElement arrayComponent = Graph.U.createNode();
 		arrayComponent.tag(XCSG.ArrayComponents);
 		arrayComponent.tag(Index.INDEX_VIEW_TAG);
-		arrayComponent.putAttr(XCSG.name, "@");
+		arrayComponent.putAttr(XCSG.name, "@[" + (arrayNumber++) + "]");
+		arrayComponent.putAttr(Constants.POINTS_TO_ARRAY_ADDRESS, address);
+		// adding to points to set for consistency, even though points to set
+		// for array component is only ever 1 address
 		PointsToAnalysis.getPointsToSet(arrayComponent).add(address);
 		return arrayComponent;
 	}

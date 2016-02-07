@@ -17,5 +17,14 @@ public class Constants {
 	 * verified by the points-to analysis
 	 */
 	public static final String INFERRED = "inferred";
+
+	/**
+	 * A convenience attribute that is applied to array components to indicate
+	 * the array address This tag is applied during graph enhancements. An array
+	 * component will contain a single address corresponding to a unique array
+	 * instantiation. This means it is safe to select array components using
+	 * selectNode(POINTS_TO_ARRAY_ADDRESS, address).
+	 */
+	public static final String POINTS_TO_ARRAY_ADDRESS = "points-to-array-address";
 	
 }
