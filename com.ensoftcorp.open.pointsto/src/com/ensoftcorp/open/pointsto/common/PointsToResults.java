@@ -22,7 +22,7 @@ import com.ensoftcorp.open.toolbox.commons.FormattedSourceCorrespondence;
 public class PointsToResults {
 
 	@SuppressWarnings("unchecked")
-	public PointsToResults() {
+	private PointsToResults() {
 		// TODO: remove super nasty hack workaround for class loader issues...
 		GraphElement pointsToResults = Common.universe().nodesTaggedWithAny("points-to-results").eval().nodes().getFirst();
 		addressToInstantiation = (Map<Long, GraphElement>) pointsToResults.getAttr("addressToInstantiation");
@@ -31,14 +31,16 @@ public class PointsToResults {
 		inferredDataFlowGraph = (Q) pointsToResults.getAttr("inferredDataFlowGraph");
 	}
 
-//	private static PointsToResults instance = null;
-//
-//	public static PointsToResults getInstance() {
+	private static PointsToResults instance = null;
+
+	public static PointsToResults getInstance() {
+		// TODO: fix
+		// intentionally violating singleton pattern because of classloader issues
 //		if (instance == null) {
-//			instance = new PointsToResults();
+			instance = new PointsToResults();
 //		}
-//		return instance;
-//	}
+		return instance;
+	}
 	
 	public Map<Long, GraphElement> addressToInstantiation;
 	public Map<Long, GraphElement> addressToType;

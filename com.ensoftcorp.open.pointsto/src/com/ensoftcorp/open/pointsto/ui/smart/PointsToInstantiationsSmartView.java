@@ -36,7 +36,7 @@ public class PointsToInstantiationsSmartView extends FilteringAtlasSmartViewScri
 	@Override
 	protected StyledResult selectionChanged(IAtlasSelectionEvent event, Q arg1) {
 		Q filteredSelection = filter(event.getSelection());
-		PointsToResults pointsToResults = new PointsToResults();
+		PointsToResults pointsToResults = PointsToResults.getInstance();
 
 		// for each selected graph element get the corresponding instantiation
 		// as determined by the points-to analysis

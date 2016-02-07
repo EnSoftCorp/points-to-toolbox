@@ -39,7 +39,7 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
 		Q filteredSelection = filter(event.getSelection());
 
-		PointsToResults pointsToResults = new PointsToResults();
+		PointsToResults pointsToResults = PointsToResults.getInstance();
 
 		// for each selected graph element get the corresponding instantiation
 		// as determined by the points-to analysis
