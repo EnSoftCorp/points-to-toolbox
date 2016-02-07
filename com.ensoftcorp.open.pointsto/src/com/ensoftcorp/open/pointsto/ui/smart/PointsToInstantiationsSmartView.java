@@ -1,5 +1,7 @@
 package com.ensoftcorp.open.pointsto.ui.smart;
 
+import java.awt.Color;
+
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -53,7 +55,8 @@ public class PointsToInstantiationsSmartView extends FilteringAtlasSmartViewScri
 		Q instantations = Common.toQ(instantiationSet);
 
 		Highlighter h = new Highlighter();
-		return new StyledResult(instantations, h);
+		h.highlight(instantations, Color.RED);
+		return new StyledResult(instantations.union(filteredSelection), h);
 	}
 
 }
