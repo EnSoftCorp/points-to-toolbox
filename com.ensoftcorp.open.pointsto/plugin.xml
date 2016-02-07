@@ -21,5 +21,14 @@
             class="com.ensoftcorp.open.pointsto.ui.smart.PointsToArrayComponentSmartView">
       </script>
    </extension>
+   
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.ensoftcorp.open.pointsto.ui.PointsToPreferences"
+            id="com.ensoftcorp.open.pointsto.ui.preferences"
+            name="Points-to Analysis">
+      </page>
+   </extension>
 
 </plugin>
