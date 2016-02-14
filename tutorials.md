@@ -21,7 +21,7 @@ In a program graph or source editor, select the reference to display points-to r
 
 ![Points-To Aliases](../images/points-to-alias.png)
 
-Optionally, the number of aliasing steps may be revealed using the controls on the left of the Smart View windows.
+Optionally, the number of aliasing steps may be revealed using the controls on the left of the Smart View window.
 
 ![Points-To Aliasing Steps](../images/points-to-alias-steps.png)
 
