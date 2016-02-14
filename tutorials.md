@@ -29,6 +29,6 @@ Selecting an array shows the instatiations and aliases of the array.
 
 ![Points-To Aliasing Steps](../images/points-to-array-aliases.png)
 
-Selecting an array with the `Points-to Array Component Aliases` Smart View shows the corresponding array component(s) for the array and the instantiations of the objects that could flow to the array components. Note that an array component symbolically represents all elements of an array.
+Selecting an array with the `Points-to Array Component Aliases` Smart View shows the corresponding array component(s) for the array and the instantiations of the objects that could flow into the array. Note that an array component symbolically represents all elements of an array.
 
 ![Points-To Aliasing Steps](../images/points-to-array-component-aliases.png)
