@@ -6,11 +6,16 @@ layout: default
 The Points-to Toolbox project is an Atlas native points-to analysis implementation  and utilities for using the points-to analysis results for other client analyses. This plugin implements an Andersen-style points-to analysis for Java and Java bytecode (leveraging Atlas for Jimple).  Additional details about the points-to analysis capabilities can be found on the [analysis details](/points-to-toolbox/analysis) page.
 
 ## Features
-- Automatic analysis following program graph generation
-- User configurable preferences
+- Automatic analysis following Atlas program graph generation
+- User configurable analysis preferences
 - Atlas Smart Views for viewing points-to results on-demand
-- Program Graph Enhancements: Rewrite data flows through array components, application of inference tags to subset of the Class Hierarchy Analysis (CHA) based interprocedural invocation edges
-- Client analysis access to: *Points-To Aliases*, *Points-To Instantiations*, and *Points-To Types* tables
+- Program Graph Enhancements: 
+	- Rewrites data flows through array components
+	- Refines Class Hierarchy Analysis (CHA) based call graphs and interprodecural data flow invocations with inference tags
+- Client analysis access to: 
+	- *Points-To Aliases* 
+	- *Points-To Instantiations*
+	- *Points-To Types*
 
 ## Getting Started
 Ready to get started?
