@@ -3,7 +3,7 @@ layout: default
 ---
 
 ## Overview
-The Points-to Toolbox project is an Atlas native points-to analysis implementation  and utilities for using the points-to analysis results for other client analyses. This plugin implements an Andersen-style points-to analysis for Java and Java bytecode (leveraging Atlas for Jimple).  Additional details about the points-to analysis capabilities be found [here](/analysis-support).
+The Points-to Toolbox project is an Atlas native points-to analysis implementation  and utilities for using the points-to analysis results for other client analyses. This plugin implements an Andersen-style points-to analysis for Java and Java bytecode (leveraging Atlas for Jimple).  Additional details about the points-to analysis capabilities can be found on the [analysis details](/points-to-toolbox/analysis) page.
 
 ## Features
 - Automatic analysis following program graph generation

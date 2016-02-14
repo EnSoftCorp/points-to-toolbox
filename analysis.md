@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Analysis Support
-permalink: /analysis-support/
+title: Analysis Details
+permalink: /analysis/
 ---
 
 The Points-to Toolbox is under active development.  This page shows the currently supported analysis capabilities and options.
