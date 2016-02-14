@@ -284,6 +284,41 @@ code {
   }
 }
 
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    empty-cells: show;
+    border: 1px solid #cbcbcb
+}
+
+table td, table th {
+    border-left: 1px solid #cbcbcb;
+    border-width: 0 0 0 1px;
+    font-size: inherit;
+    margin: 0;
+    overflow: visible;
+    padding: .5em 1em
+}
+
+table td:first-child, table th:first-child {
+    border-left-width: 0
+}
+
+table thead {
+    background-color: #e0e0e0;
+    color: #000;
+    text-align: left;
+    vertical-align: bottom
+}
+
+table td {
+    background-color: transparent
+}
+
+tbody tr:nth-child(odd) {
+   background-color: #f2f2f2;
+}
+
 .wrapper-footer {
   margin-top: 50px;
   border-top: 1px solid #ddd;
