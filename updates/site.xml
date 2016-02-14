@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Points-to Toolbox" url="https://ensoftcorp.github.io/points-to-toolbox/updates/">
+      An Atlas native points-to analysis toolbox
+   </description>
+   <feature url="features/PointsToToolbox_2.7.1.201602141643.jar" id="PointsToToolbox" version="2.7.1.201602141643">
+      <category name="Points-to Toolbox"/>
+   </feature>
+   <category-def name="Points-to Toolbox" label="Points-to Toolbox">
+      <description>
+         An Atlas native points-to analysis toolbox
+      </description>
+   </category-def>
+</site>
