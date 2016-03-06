@@ -39,7 +39,7 @@ public abstract class PointsTo {
 			runAnalysis();
 			Log.info("Finished " + getClass().getSimpleName() + " Points-to Analysis");
 			hasRun = true;
-			return start - System.currentTimeMillis();
+			return System.currentTimeMillis() - start;
 		}
 	}
 	
