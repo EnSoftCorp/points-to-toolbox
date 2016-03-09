@@ -76,6 +76,8 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 		// compute what is on the frontier
 		Q frontierForward = instantations.forwardStepOn(completeResult, forward+1);
 		Q frontierReverse = filteredSelection.reverseStepOn(completeResult, reverse+1);
+		frontierForward = frontierForward.retainEdges().differenceEdges(result);
+		frontierReverse = frontierReverse.retainEdges().differenceEdges(result);
 
 		return new com.ensoftcorp.atlas.core.script.FrontierStyledResult(result, frontierReverse, frontierForward, new MarkupFromH(h));
 	}

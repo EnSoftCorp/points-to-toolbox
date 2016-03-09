@@ -64,6 +64,8 @@ public class PointsToArrayComponentSmartView extends FilteringAtlasSmartViewScri
 		// compute what is on the frontier
 		Q frontierForward = arrayComponents.forwardStepOn(pointsToResults.inferredDataFlowGraph, forward+1);
 		Q frontierReverse = arrayComponents.reverseStepOn(pointsToResults.inferredDataFlowGraph, reverse+1);
+		frontierForward = frontierForward.retainEdges().differenceEdges(result);
+		frontierReverse = frontierReverse.retainEdges().differenceEdges(result);
 
 		Highlighter h = new Highlighter();
 		h.highlight(arrayComponents, Color.CYAN);

@@ -88,6 +88,8 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 		// compute what is on the frontier
 		Q frontierForward = arrayComponentInstantiations.forwardStepOn(completeResult, forward+1);
 		Q frontierReverse = arrayComponents.reverseStepOn(completeResult, reverse+1);
+		frontierForward = frontierForward.retainEdges().differenceEdges(result);
+		frontierReverse = frontierReverse.retainEdges().differenceEdges(result);
 
 		return new com.ensoftcorp.atlas.core.script.FrontierStyledResult(result, frontierReverse, frontierForward, new MarkupFromH(h));
 	}
