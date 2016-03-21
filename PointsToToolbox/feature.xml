@@ -2,7 +2,7 @@
 <feature
       id="PointsToToolbox"
       label="PointsToToolbox"
-      version="2.7.1.qualifier">
+      version="2.7.3.qualifier">
 
    <description url="https://ensoftcorp.github.io/points-to-toolbox/">
       An Atlas native points-to analysis toolbox
