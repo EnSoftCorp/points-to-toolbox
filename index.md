@@ -11,7 +11,7 @@ The Points-to Toolbox project is an Atlas native points-to analysis implementati
 - Atlas Smart Views for viewing points-to results on-demand
 - Program Graph Enhancements: 
 	- Rewrites data flows through array components
-	- Refines Class Hierarchy Analysis (CHA) based call graphs and interprodecural data flow invocations with inference tags
+	- Refines Class Hierarchy Analysis (CHA) based call graphs
 - Client analysis access to: 
 	- *Points-To Aliases* 
 	- *Points-To Instantiations*
@@ -24,4 +24,4 @@ Ready to get started?
 2. Then check out the provided [tutorials](/points-to-toolbox/tutorials) to jump start your analysis
 
 ## Source Code
-Need additional resources?  Checkout the [Javadocs](/points-to-toolbox/javadoc/index.html) or grab a copy of the [source](https://github.com/benjholla/points-to-toolbox).
+Need additional resources?  Checkout the [Javadocs](/points-to-toolbox/javadoc/index.html) or grab a copy of the [source](https://github.com/EnSoftCorp/points-to-toolbox).
