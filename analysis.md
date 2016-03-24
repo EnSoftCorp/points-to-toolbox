@@ -44,5 +44,9 @@ Currently support for Java is supported through the Java Bytecode (Jimple) point
 ## Notes
 In Java bytecode, multi-dimensional arrays are treated as arrays of arrays.
 
+For exampple consider a new array allocation of `new Object[3][3]`. It's tempting to draw a 2 dimensional array as a 3x3 matrix, but this is not an accurate representation of what's actually happening in bytecode! A sketch of how this array would be laid out in memory actually looks more like the following figure.
+
+![Multi-dimensional Array](/points-to-toolbox/images/multi-dimensional-array.png)
+
 ## C/C++
 Currently not supported.
