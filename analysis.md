@@ -7,6 +7,7 @@ permalink: /analysis/
 The Points-to Toolbox is under active development.  This page shows the currently supported analysis capabilities and options.
 
 ## Java
+
 | **Challenge**                  | **Capability**                                                                                                                                                                                                                                              |
 |--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Inter-procedural Analysis      | Results are computed inter-procedurally, resolving dynamic dispatches as potential runtime types are discovered.                                                                                                                                            |
@@ -25,6 +26,7 @@ The Points-to Toolbox is under active development.  This page shows the currentl
 Currently support for Java is supported through the Java Bytecode (Jimple) points-to analysis implementation. A more complete Java implementation will be provided in the future. Implementations for arrays, exceptional flows, and primitives will be significantly different in Java source.
 
 ## Java Bytecode (Jimple)
+
 | **Challenge**                  | **Capability**                                                                                                                                                                                                                                              |
 |--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Inter-procedural Analysis      | Results are computed inter-procedurally, resolving dynamic dispatches as potential runtime types are discovered.                                                                                                                                            |
