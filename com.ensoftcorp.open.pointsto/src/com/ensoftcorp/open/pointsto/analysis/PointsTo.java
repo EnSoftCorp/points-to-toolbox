@@ -1,9 +1,9 @@
 package com.ensoftcorp.open.pointsto.analysis;
 
 import java.util.HashSet;
-import java.util.Map;
 
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 
@@ -14,8 +14,9 @@ import com.ensoftcorp.atlas.core.query.Q;
  * @author Ben Holland
  */
 public abstract class PointsTo {
-
+	
 	private boolean hasRun = false;
+	protected boolean isDisposed = false;
 	
 	/**
 	 * Returns true if the points-to analysis has completed
@@ -31,6 +32,9 @@ public abstract class PointsTo {
 	 * @return
 	 */
 	public long run(){
+		if(isDisposed){
+			throw new RuntimeException("Points-to analysis was disposed.");
+		}
 		if(hasRun){
 			return 0;
 		} else {
@@ -49,27 +53,49 @@ public abstract class PointsTo {
 	protected abstract void runAnalysis();
 	
 	/**
-	 * Returns a convenience mapping of arrays to the array's components
+	 * Returns the mapping of arrays to the array's components
 	 * @return
 	 */
-	public abstract Map<Long, HashSet<Long>> getArrayMemoryModel();
+	public abstract HashSet<Long> getArrayMemoryModel(Long address);
 	
 	/**
-	 * Returns a convenience mapping of an address to its corresponding instantiation
+	 * Returns a set of alias addresses
+	 * @param node
 	 * @return
 	 */
-	public abstract Map<Long, GraphElement> getAddressToInstantiation();
+	public abstract HashSet<Long> getAliasAddresses(Node node);
+	
+	/**
+	 * Returns the mapping of an address to its corresponding instantiation
+	 * @return
+	 */
+	public abstract Node getInstantiation(Long address);
 
 	/**
-	 * Returns a convenience mapping of an address to its corresponding static type
+	 * Returns the mapping of an address to its corresponding static type
 	 * @return
 	 */
-	public abstract Map<Long, GraphElement> getAddressToType();
+	public abstract Node getType(Long address);
+	
+	/**
+	 * Returns a set of all addressed nodes
+	 * @return
+	 */
+	public abstract AtlasSet<Node> getAddressedNodes();
 	
 	/**
 	 * Returns the inferred data flow graph as the results of the fixed point analysis
 	 * @return
 	 */
 	public abstract Q getInferredDataFlowGraph();
+	
+	public boolean isDisposed(){
+		return isDisposed;
+	}
+	
+	/**
+	 * Signals that the points to analysis results no longer need to be maintained by the analysis
+	 */
+	public abstract void dispose();
 	
 }

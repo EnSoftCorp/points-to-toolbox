@@ -1,7 +1,5 @@
 package com.ensoftcorp.open.pointsto.utilities;
 
-import java.util.HashSet;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
@@ -16,7 +14,6 @@ import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.open.pointsto.common.Constants;
 
 /**
  * Utilities for assisting in the computation of points-to sets.
@@ -27,24 +24,6 @@ import com.ensoftcorp.open.pointsto.common.Constants;
  */
 public class PointsToAnalysis {
 
-	/**
-	 * Gets or creates the points to set for a graph element.
-	 * Returns a reference to the points to set so that updates to the 
-	 * set will also update the set on the graph element.
-	 * @param ge
-	 * @return 
-	 */
-	@SuppressWarnings("unchecked")
-	public static HashSet<Long> getPointsToSet(GraphElement ge){
-		if(ge.hasAttr(Constants.POINTS_TO_SET)){
-			return (HashSet<Long>) ge.getAttr(Constants.POINTS_TO_SET);
-		} else {
-			HashSet<Long> pointsToIds = new HashSet<Long>();
-			ge.putAttr(Constants.POINTS_TO_SET, pointsToIds);
-			return pointsToIds;
-		}
-	}
-	
 	/**
 	 * Given an object reference, return the stated type of that reference.
 	 * 
