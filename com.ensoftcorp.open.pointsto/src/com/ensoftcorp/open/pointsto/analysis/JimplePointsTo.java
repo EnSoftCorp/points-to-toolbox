@@ -65,7 +65,7 @@ public class JimplePointsTo extends PointsTo {
 		}
 		isDisposed = true;
 		// remove the temporary attributes
-		AtlasSet<Node> addressedObjects = new AtlasHashSet<Node>(Common.universe().nodesTaggedWithAny(POINTS_TO_SET).eval().nodes());
+		AtlasSet<Node> addressedObjects = new AtlasHashSet<Node>(Common.universe().selectNode(POINTS_TO_SET).eval().nodes());
 		while(!addressedObjects.isEmpty()){
 			Node addressedObject = addressedObjects.one();
 			addressedObject.removeAttr(POINTS_TO_SET);
