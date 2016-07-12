@@ -8,10 +8,11 @@ import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.query.Attr.Node;
+import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
@@ -50,7 +51,7 @@ public class PointsToAnalysis {
 	 * @param ge
 	 * @return
 	 */
-	public static GraphElement statedType(GraphElement ge){
+	public static Node statedType(GraphElement ge){
 		return Common.universe().edgesTaggedWithAny(XCSG.TypeOf).successors(Common.toQ(ge)).eval().nodes().getFirst();
 	}
 	
@@ -59,7 +60,7 @@ public class PointsToAnalysis {
 	 * @param arrayReference
 	 * @return
 	 */
-	public static AtlasSet<GraphElement> getArrayReadAccessesForArrayReference(GraphElement arrayReference) {
+	public static AtlasSet<Node> getArrayReadAccessesForArrayReference(GraphElement arrayReference) {
 		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
 		return arrayIdentityFor.successors(Common.toQ(arrayReference)).nodesTaggedWithAny(XCSG.ArrayRead).eval().nodes();
 	}
@@ -69,7 +70,7 @@ public class PointsToAnalysis {
 	 * @param arrayReference
 	 * @return
 	 */
-	public static AtlasSet<GraphElement> getArrayWriteAccessesForArrayReference(GraphElement arrayReference) {
+	public static AtlasSet<Node> getArrayWriteAccessesForArrayReference(GraphElement arrayReference) {
 		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
 		return arrayIdentityFor.successors(Common.toQ(arrayReference)).nodesTaggedWithAny(XCSG.ArrayWrite).eval().nodes();
 	}
@@ -79,7 +80,7 @@ public class PointsToAnalysis {
 	 * @param arrayAccess
 	 * @return
 	 */
-	public static AtlasSet<GraphElement> getArrayReferencesForArrayAccess(GraphElement arrayAccess){
+	public static AtlasSet<Node> getArrayReferencesForArrayAccess(GraphElement arrayAccess){
 		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
 		return arrayIdentityFor.predecessors(Common.toQ(arrayAccess)).eval().nodes();
 	}
@@ -90,9 +91,9 @@ public class PointsToAnalysis {
 	 * @param dimension
 	 * @return
 	 */
-	public static GraphElement getArrayTypeForDimension(GraphElement arrayElementType, int dimension){
+	public static Node getArrayTypeForDimension(GraphElement arrayElementType, int dimension){
 		Q arrayTypes = Common.universe().edgesTaggedWithAny(XCSG.ArrayElementType).predecessors(Common.toQ(arrayElementType));
-		return arrayTypes.selectNode(Node.DIMENSION, dimension).eval().nodes().getFirst();
+		return arrayTypes.selectNode(Attr.Node.DIMENSION, dimension).eval().nodes().getFirst();
 	}
 	
 	/**
@@ -136,13 +137,13 @@ public class PointsToAnalysis {
 		Q typeToSearchContext = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.InvokedType));
 		
 		Q concreteTypes = Common.resolve(monitor, Common.universe().nodesTaggedWithAny(XCSG.ArrayType, XCSG.Java.Class).difference(Common.universe().nodesTaggedWithAny(XCSG.Java.AbstractClass)));
-		Q finalConcreteTypes = Common.resolve(monitor, concreteTypes.nodesTaggedWithAny(Node.IS_FINAL).union(roots(supertypeContext, concreteTypes)));
+		Q finalConcreteTypes = Common.resolve(monitor, concreteTypes.nodesTaggedWithAny(Attr.Node.IS_FINAL).union(roots(supertypeContext, concreteTypes)));
 		
 		Q methodSignatureContext = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.InvokedFunction, XCSG.InvokedSignature));
 		
 		Q methods = Common.universe().nodesTaggedWithAny(XCSG.InstanceMethod);
 		Q concreteMemberMethods = methods.difference(Common.universe().nodesTaggedWithAny(XCSG.abstractMethod));
-		Q finalMemberMethods = Common.resolve(monitor, concreteMemberMethods.nodesTaggedWithAny(Node.IS_FINAL).union(roots(overridesContext, concreteMemberMethods)));
+		Q finalMemberMethods = Common.resolve(monitor, concreteMemberMethods.nodesTaggedWithAny(Attr.Node.IS_FINAL).union(roots(overridesContext, concreteMemberMethods)));
 		
 		Q resolvableCallsites = Common.resolve(monitor, Common.universe().nodesTaggedWithAny(XCSG.StaticDispatchCallSite).union(
 				typeToSearchContext.predecessors(finalConcreteTypes).nodesTaggedWithAny(XCSG.CallSite),
@@ -160,8 +161,8 @@ public class PointsToAnalysis {
 	 * @return
 	 */
 	public static Q roots(Q edgeContext, Q nodes){
-		AtlasSet<GraphElement> nodeSet = nodes.eval().nodes();
-		AtlasSet<GraphElement> rootSet = new AtlasHashSet<GraphElement>((int) nodeSet.size());
+		AtlasSet<Node> nodeSet = nodes.eval().nodes();
+		AtlasSet<Node> rootSet = new AtlasHashSet<Node>();
 		
 		Graph edgeContextG = edgeContext.eval();
 		for(GraphElement node : nodeSet){
@@ -179,11 +180,11 @@ public class PointsToAnalysis {
 	 * @param m
 	 * @return
 	 */
-	public static AtlasHashSet<GraphElement> getDynamicCallsiteThisSet(IProgressMonitor monitor) {
+	public static AtlasHashSet<Node> getDynamicCallsiteThisSet(IProgressMonitor monitor) {
 		Q resolvableCallsites = getResolvableCallsites(monitor);
 		Q unresolvableCallsites = Common.universe().nodesTaggedWithAny(XCSG.DynamicDispatchCallSite).difference(resolvableCallsites);
 		Q dfInvokeThisContext = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.IdentityPassedTo));
-		AtlasHashSet<GraphElement> dynamicCallsiteThis = new AtlasHashSet<GraphElement>(dfInvokeThisContext.predecessors(unresolvableCallsites).eval().nodes());
+		AtlasHashSet<Node> dynamicCallsiteThis = new AtlasHashSet<Node>(dfInvokeThisContext.predecessors(unresolvableCallsites).eval().nodes());
 		return dynamicCallsiteThis;
 	}
 	
@@ -194,13 +195,13 @@ public class PointsToAnalysis {
 	 * @param methods
 	 * @param signatureSet
 	 */
-	public static AtlasSet<GraphElement> getSignatureSet(AtlasSet<GraphElement> methods){
+	public static AtlasSet<Node> getSignatureSet(AtlasSet<Node> methods){
 		Graph declaresGraph = Common.universe().edgesTaggedWithAny(XCSG.Contains).retainEdges().eval();
-		AtlasSet<GraphElement> signatureSet = new AtlasHashSet<GraphElement>();
+		AtlasSet<Node> signatureSet = new AtlasHashSet<Node>();
 		for(GraphElement method : methods){
-			AtlasSet<GraphElement> cached = new AtlasHashSet<GraphElement>();
+			AtlasSet<Node> cached = new AtlasHashSet<Node>();
 			for(GraphElement outDeclares : declaresGraph.edges(method, NodeDirection.OUT)){
-				GraphElement declares = outDeclares.getNode(EdgeDirection.TO);
+				Node declares = outDeclares.getNode(EdgeDirection.TO);
 				if(declares.taggedWith(XCSG.Parameter) || declares.taggedWith(XCSG.Identity) || declares.taggedWith(XCSG.ReturnValue)){
 					cached.add(declares);
 				}

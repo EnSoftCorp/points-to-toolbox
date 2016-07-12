@@ -4,6 +4,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.index.Index;
 import com.ensoftcorp.atlas.core.query.Q;
@@ -25,15 +26,15 @@ public class GraphEnhancements {
 	
 	public static void rewriteArrayComponents(){
 		// first delete all array components
-		AtlasSet<GraphElement> arrayComponents = Common.resolve(new NullProgressMonitor(), Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents)).eval().nodes();
+		AtlasSet<Node> arrayComponents = Common.resolve(new NullProgressMonitor(), Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents)).eval().nodes();
 		for(GraphElement arrayComponent : arrayComponents){
 			Graph.U.delete(arrayComponent);
 		}
 		
 		// get all the array reads and writes that could potentially be matched
 		Q addressedObjects = Common.universe().selectNode(Constants.POINTS_TO_SET);
-		AtlasSet<GraphElement> arrayReads = Common.resolve(new NullProgressMonitor(), addressedObjects.nodesTaggedWithAny(XCSG.ArrayRead)).eval().nodes();
-		AtlasSet<GraphElement> arrayWrites = Common.resolve(new NullProgressMonitor(), addressedObjects.nodesTaggedWithAny(XCSG.ArrayWrite)).eval().nodes();
+		AtlasSet<Node> arrayReads = Common.resolve(new NullProgressMonitor(), addressedObjects.nodesTaggedWithAny(XCSG.ArrayRead)).eval().nodes();
+		AtlasSet<Node> arrayWrites = Common.resolve(new NullProgressMonitor(), addressedObjects.nodesTaggedWithAny(XCSG.ArrayWrite)).eval().nodes();
 		Q arrayIdentityForEdges = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
 		
 		// create a new array component for each array instantiation
@@ -76,7 +77,7 @@ public class GraphEnhancements {
 	private static int arrayNumber = 1;
 	
 	private static GraphElement findOrCreateArrayComponent(Long address){
-		AtlasSet<GraphElement> arrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).selectNode(Constants.POINTS_TO_SET).eval().nodes();
+		AtlasSet<Node> arrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).selectNode(Constants.POINTS_TO_SET).eval().nodes();
 		for(GraphElement arrayComponent : arrayComponents){
 			if(PointsToAnalysis.getPointsToSet(arrayComponent).contains(address)){
 				return arrayComponent;

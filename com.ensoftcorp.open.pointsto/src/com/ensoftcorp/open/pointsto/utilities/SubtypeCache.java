@@ -6,10 +6,11 @@ import java.util.Iterator;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.log.Log;
@@ -29,7 +30,7 @@ public class SubtypeCache {
 	/**
 	 * Cached supertype relations for concrete types
 	 */
-	private CompactHashMap<GraphElement, AtlasSet<GraphElement>> supertypes;
+	private CompactHashMap<Node, AtlasSet<Node>> supertypes;
 	
 	public SubtypeCache(IProgressMonitor monitor) {
 		cacheSubtypeRelations(monitor);
@@ -41,11 +42,11 @@ public class SubtypeCache {
 	 * @param type2
 	 * @return true if type1 is a subtype of type2
 	 */
-	public boolean isSubtypeOf(GraphElement type1, GraphElement type2) {
+	public boolean isSubtypeOf(Node type1, Node type2) {
 		if (type1.equals(type2))
 			return true;
 		
-		AtlasSet<GraphElement> st = supertypes.get(type1);
+		AtlasSet<Node> st = supertypes.get(type1);
 		if (st == null) {
 			// this only occurs if type1 is not in the index - it's missing, but a few relations can still be inferred
 
@@ -70,32 +71,32 @@ public class SubtypeCache {
 
 	private void cacheSubtypeRelations(IProgressMonitor m) {
 		// for (at least) all concrete types, cache the supertypes
-		CompactHashMap<GraphElement, AtlasSet<GraphElement>> supertypeClosure = new CompactHashMap<GraphElement, AtlasSet<GraphElement>>();
+		CompactHashMap<Node, AtlasSet<Node>> supertypeClosure = new CompactHashMap<Node, AtlasSet<Node>>();
 
 		Q supersetOfConcreteTypesQ = universe().nodesTaggedWithAny(XCSG.Java.Class, XCSG.ArrayType);
-		AtlasSet<GraphElement> supersetOfConcreteTypes = Common.resolve(m, supersetOfConcreteTypesQ).eval().nodes();
+		AtlasSet<Node> supersetOfConcreteTypes = Common.resolve(m, supersetOfConcreteTypesQ).eval().nodes();
 
 		Graph st = universe().edgesTaggedWithAny(XCSG.Supertype).eval();
-		Iterator<GraphElement> itr = supersetOfConcreteTypes.iterator();
+		Iterator<Node> itr = supersetOfConcreteTypes.iterator();
 		while (itr.hasNext()) {
-			GraphElement t = itr.next();
+			Node t = itr.next();
 			getClosure(supertypeClosure, st, t);
 		}
 
 		// add NullType as a subtype of every other type, to enable assignment compatibility
-		GraphElement nullType = universe().nodesTaggedWithAny(XCSG.Java.NullType).eval().nodes().getFirst();
+		Node nullType = universe().nodesTaggedWithAny(XCSG.Java.NullType).eval().nodes().getFirst();
 		supertypeClosure.put(nullType, supersetOfConcreteTypes);
 		
 		this.supertypes = supertypeClosure;
 	}
 
-	private AtlasSet<GraphElement> getClosure(CompactHashMap<GraphElement, AtlasSet<GraphElement>> supertypeClosure, Graph SupertypeGraph, GraphElement t) {
-		AtlasSet<GraphElement> closure = new AtlasHashSet<GraphElement>();
+	private AtlasSet<Node> getClosure(CompactHashMap<Node, AtlasSet<Node>> supertypeClosure, Graph SupertypeGraph, Node t) {
+		AtlasSet<Node> closure = new AtlasHashSet<Node>();
 		closure.add(t);
-		AtlasSet<GraphElement> edges = SupertypeGraph.edges(t, NodeDirection.OUT);
-		for (GraphElement edgeSupertype : edges) {
-			GraphElement supertype = edgeSupertype.getNode(EdgeDirection.TO);
-			AtlasSet<GraphElement> superClosure = supertypeClosure.get(supertype);
+		AtlasSet<Edge> edges = SupertypeGraph.edges(t, NodeDirection.OUT);
+		for (Edge edgeSupertype : edges) {
+			Node supertype = edgeSupertype.getNode(EdgeDirection.TO);
+			AtlasSet<Node> superClosure = supertypeClosure.get(supertype);
 			if (superClosure == null) {
 				superClosure = getClosure(supertypeClosure, SupertypeGraph, supertype);
 			}

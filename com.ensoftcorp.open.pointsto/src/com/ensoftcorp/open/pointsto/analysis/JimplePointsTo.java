@@ -10,12 +10,12 @@ import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.log.Log;
-import com.ensoftcorp.atlas.core.query.Attr.Edge;
-import com.ensoftcorp.atlas.core.query.Attr.Node;
+import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
@@ -63,7 +63,7 @@ public class JimplePointsTo extends PointsTo {
 	/**
 	 * A convenience mapping of addresses to types
 	 */
-	private final CompactHashMap<Long,GraphElement> addressToType = new CompactHashMap<Long,GraphElement>();
+	private final CompactHashMap<Long,Node> addressToType = new CompactHashMap<Long,Node>();
 	
 	@Override
 	public HashMap<Long, GraphElement> getAddressToType() {
@@ -144,7 +144,7 @@ public class JimplePointsTo extends PointsTo {
 	private void seedFrontier() {
 		// set the first address (address 0) to be the null type
 		// technically there is no instantiation of null, but it can be useful to treat is as one
-		GraphElement nullType = Common.universe().nodesTaggedWithAny(XCSG.Java.NullType).eval().nodes().getFirst();
+		Node nullType = Common.universe().nodesTaggedWithAny(XCSG.Java.NullType).eval().nodes().getFirst();
 		addressToInstantiation.put(NULL_TYPE_ADDRESS, nullType);
 		addressToType.put(NULL_TYPE_ADDRESS, nullType);
 		
@@ -154,8 +154,8 @@ public class JimplePointsTo extends PointsTo {
 		
 		// create unique addresses for types of new statements and array instantiations
 		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation);
-		for(GraphElement newRef : newRefs.eval().nodes()){
-			GraphElement statedType = PointsToAnalysis.statedType(newRef);
+		for(Node newRef : newRefs.eval().nodes()){
+			Node statedType = PointsToAnalysis.statedType(newRef);
 			if(statedType != null){
 				// create a new address for the reference and add a  
 				// mapping from the address to the state type
@@ -167,10 +167,10 @@ public class JimplePointsTo extends PointsTo {
 				// if this is an array instantiation then we should create an
 				// array memory model and addresses for array memory references
 				// of each array dimension of the array
-				if(statedType.hasAttr(Node.DIMENSION)){
-					GraphElement arrayType = statedType;
-					int arrayDimension = (int) arrayType.getAttr(Node.DIMENSION);
-					GraphElement arrayElementType = Common.universe().edgesTaggedWithAny(XCSG.ArrayElementType).successors(Common.toQ(arrayType)).eval().nodes().getFirst();
+				if(statedType.hasAttr(Attr.Node.DIMENSION)){
+					Node arrayType = statedType;
+					int arrayDimension = (int) arrayType.getAttr(Attr.Node.DIMENSION);
+					Node arrayElementType = Common.universe().edgesTaggedWithAny(XCSG.ArrayElementType).successors(Common.toQ(arrayType)).eval().nodes().getFirst();
 					// the top dimension has already been addressed, so start at dimension minus 1
 					for(int i=arrayDimension-1; i>0; i--){
 						// map array dimension address to array dimension type
@@ -244,14 +244,14 @@ public class JimplePointsTo extends PointsTo {
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		
 		// create graphs and sets for resolving dynamic dispatches
-		AtlasHashSet<GraphElement> dynamicCallsiteThisSet = PointsToAnalysis.getDynamicCallsiteThisSet(monitor);
+		AtlasHashSet<Node> dynamicCallsiteThisSet = PointsToAnalysis.getDynamicCallsiteThisSet(monitor);
 		Graph dfInvokeThisGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.IdentityPassedTo)).eval();
 		Graph methodSignatureGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.InvokedFunction, XCSG.InvokedSignature)).eval();
 
 		// create graphs for performing array analysis
 		Q arrayAccess = Common.universe().nodesTaggedWithAny(XCSG.ArrayAccess);
 		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
-		AtlasSet<GraphElement> arrayReferences = arrayIdentityFor.predecessors(arrayAccess).eval().nodes();
+		AtlasSet<Node> arrayReferences = arrayIdentityFor.predecessors(arrayAccess).eval().nodes();
 		
 		// iteratively propagate points-to information until a fixed point is reached
 		while(frontier.hasNext()){
@@ -290,14 +290,14 @@ public class JimplePointsTo extends PointsTo {
 						}
 						
 						// resolve any potential dynamic dispatches
-						AtlasSet<GraphElement> resolvedDispatches = CommonQueries.dynamicDispatch(Common.toQ(runtimeTypes), Common.toQ(methodSignature)).eval().nodes();
-						AtlasSet<GraphElement> signatureSet = PointsToAnalysis.getSignatureSet(resolvedDispatches);
+						AtlasSet<Node> resolvedDispatches = CommonQueries.dynamicDispatch(Common.toQ(runtimeTypes), Common.toQ(methodSignature)).eval().nodes();
+						AtlasSet<Node> signatureSet = PointsToAnalysis.getSignatureSet(resolvedDispatches);
 						
 						// ASSERT: only DF_INTERPROCEDURAL edges have a CALL_SITE_ID
-						Address csid = (Address) callsite.getAttr(Node.CALL_SITE_ID);
+						Address csid = (Address) callsite.getAttr(Attr.Node.CALL_SITE_ID);
 	
 						// for each resolved dispatch we need to update the data flow graph for the next iteration
-						for(GraphElement resolvedEdge : Graph.U.edges().filter(Edge.CALL_SITE_ID, csid)){
+						for(GraphElement resolvedEdge : Graph.U.edges().filter(Attr.Edge.CALL_SITE_ID, csid)){
 							if(signatureSet.contains(resolvedEdge.getNode(EdgeDirection.TO)) || signatureSet.contains(resolvedEdge.getNode(EdgeDirection.FROM))){
 								// add the edge and update the node sets if the edge doesn't already exist in the graph
 								if(dfEdges.add(resolvedEdge)){
@@ -371,11 +371,11 @@ public class JimplePointsTo extends PointsTo {
 		HashSet<Long> fromAddresses = PointsToAnalysis.getPointsToSet(from);
 		HashSet<Long> toAddresses = PointsToAnalysis.getPointsToSet(to);		
 		// need to check type compatibility
-		GraphElement toStatedType = PointsToAnalysis.statedType(to);
+		Node toStatedType = PointsToAnalysis.statedType(to);
 		if(toStatedType != null){
 			// if the from type is compatible with the compatible to type set, add it
 			for(Long fromAddress : fromAddresses){
-				GraphElement addressType = addressToType.get(fromAddress);
+				Node addressType = addressToType.get(fromAddress);
 				if (subtypes.isSubtypeOf(addressType, toStatedType)) {
 					toReceivedNewAddresses |= toAddresses.add(fromAddress);
 				}
@@ -410,7 +410,7 @@ public class JimplePointsTo extends PointsTo {
 						HashSet<Long> arrayReadReferenceAddresses = PointsToAnalysis.getPointsToSet(arrayReadReference);
 						if(arrayReadReferenceAddresses.contains(arrayWriteReferenceAddress)){
 							// transfer addresses from AW to each AR corresponding to the REFR with a matching address
-							AtlasSet<GraphElement> arrayReads = PointsToAnalysis.getArrayReadAccessesForArrayReference(arrayReadReference);
+							AtlasSet<Node> arrayReads = PointsToAnalysis.getArrayReadAccessesForArrayReference(arrayReadReference);
 							for(GraphElement arrayRead : arrayReads){
 								if(transferTypeCompatibleAddressesFromArrayMemoryModel(arrayWriteReferenceAddress, arrayRead)){
 									// if we transfered new addresses add the AR to the frontier
@@ -438,7 +438,7 @@ public class JimplePointsTo extends PointsTo {
 		HashSet<Long> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
 		HashSet<Long> toAddresses = PointsToAnalysis.getPointsToSet(arrayRead);		
 		// need to check type compatibility
-		GraphElement toStatedType = PointsToAnalysis.statedType(arrayRead);
+		Node toStatedType = PointsToAnalysis.statedType(arrayRead);
 		if(toStatedType != null){
 			// if the from type is compatible with the compatible to type set, add it
 			for(Long fromAddress : fromAddresses){

@@ -8,13 +8,14 @@ import java.util.Map;
 import java.util.Set;
 
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
+import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.utils.FormattedSourceCorrespondence;
 import com.ensoftcorp.open.pointsto.utilities.PointsToAnalysis;
-import com.ensoftcorp.open.toolbox.commons.FormattedSourceCorrespondence;
 
 /**
  * Provides client access to the results of points-to analysis and some
@@ -72,7 +73,7 @@ public class PointsToResults {
 	 * @return
 	 */
 	public static double getAverageSizeOfPointsToSets(){
-		AtlasSet<GraphElement> allNodesWithPointsToSets = Common.universe().selectNode(Constants.POINTS_TO_SET).eval().nodes();
+		AtlasSet<Node> allNodesWithPointsToSets = Common.universe().selectNode(Constants.POINTS_TO_SET).eval().nodes();
 		double sum = 0;
 		for(GraphElement nodeWithPointsToSet : allNodesWithPointsToSets){
 			sum += PointsToAnalysis.getPointsToSet(nodeWithPointsToSet).size();
@@ -117,7 +118,7 @@ public class PointsToResults {
 		// write out the alias points-to table
 		FileWriter aliases = new FileWriter(aliasesFile);
 		aliases.write("File Name,Line Number,Variable,Points-to-set\n");
-		AtlasSet<GraphElement> aliasNodes = Common.universe().selectNode(Constants.POINTS_TO_SET)
+		AtlasSet<Node> aliasNodes = Common.universe().selectNode(Constants.POINTS_TO_SET)
 				.difference(Common.toQ(allInstantiations), Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents))
 				.eval().nodes();
 		for(GraphElement alias : aliasNodes){
