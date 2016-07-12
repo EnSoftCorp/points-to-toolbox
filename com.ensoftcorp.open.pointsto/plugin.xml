@@ -65,7 +65,7 @@
       <page
             class="com.ensoftcorp.open.pointsto.ui.PointsToPreferencesPage"
             id="com.ensoftcorp.open.pointsto.ui.preferences"
-            name="Points-To Toolbox">
+            name="Points-To Analysis">
       </page>
    </extension>
 

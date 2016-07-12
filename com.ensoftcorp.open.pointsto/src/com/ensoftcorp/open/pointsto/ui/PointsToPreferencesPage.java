@@ -17,8 +17,9 @@ import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
  */
 public class PointsToPreferencesPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	public static final String JIMPLE_POINTS_TO_ANALYSIS_DESCRIPTION = "Enable Jimple (Java bytecode) Points-to Analysis";
-	public static final String JAVA_POINTS_TO_ANALYSIS_DESCRIPTION = "Enable Java Source Points-to Analysis (beta)";
+	private static final String GENERAL_LOGGING_DESCRIPTION = "Enable General Logging";
+	private static final String JIMPLE_POINTS_TO_ANALYSIS_DESCRIPTION = "Enable Jimple (Java bytecode) Points-to Analysis";
+	private static final String JAVA_POINTS_TO_ANALYSIS_DESCRIPTION = "Enable Java Source Points-to Analysis (beta)";
 
 	private static boolean changeListenerAdded = false;
 
@@ -46,6 +47,7 @@ public class PointsToPreferencesPage extends FieldEditorPreferencePage implement
 
 	@Override
 	protected void createFieldEditors() {
+		addField(new BooleanFieldEditor(PointsToPreferences.GENERAL_LOGGING, "&" + GENERAL_LOGGING_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(PointsToPreferences.JIMPLE_POINTS_TO_ANALYSIS, "&" + JIMPLE_POINTS_TO_ANALYSIS_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(PointsToPreferences.JAVA_POINTS_TO_ANALYSIS, "&" + JAVA_POINTS_TO_ANALYSIS_DESCRIPTION, getFieldEditorParent()));
 	}

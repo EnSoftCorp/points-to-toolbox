@@ -25,28 +25,36 @@ import com.ensoftcorp.open.pointsto.log.Log;
  */
 public class GraphEnhancements {
 	
-	public static void tagInferredEdges(PointsTo pointsTo){
+	public static long tagInferredEdges(PointsTo pointsTo){
+		long numInferredEdges = 0;
 		// bless interprocedural invocation data flow edges
 		for(Edge dfEdge : new AtlasHashSet<Edge>(pointsTo.getInferredDataFlowGraph().edges())){
 			dfEdge.tag(PointsToAnalysis.INFERRED);
+			numInferredEdges++;
 		}
+		return numInferredEdges;
 	}
 	
-	public static void serializeArrayMemoryModels(PointsTo pointsTo){
+	public static long serializeArrayMemoryModels(PointsTo pointsTo){
+		long numMemoryModels = 0;
 		Q arrayInstantiations = Common.universe().nodesTaggedWithAny(XCSG.ArrayInstantiation);
 		for(Node arrayInstantiation : arrayInstantiations.eval().nodes()){
 			for(Integer address : pointsTo.getAliasAddresses(arrayInstantiation)){
 				if(!arrayInstantiation.hasAttr(PointsToAnalysis.ARRAY_MEMORY_MODEL)){
-					arrayInstantiation.putAttr(PointsToAnalysis.ARRAY_MEMORY_MODEL, pointsTo.getArrayMemoryModel(address));
+					HashSet<Integer> arrayMemoryModel = pointsTo.getArrayMemoryModel(address);
+					arrayInstantiation.putAttr(PointsToAnalysis.ARRAY_MEMORY_MODEL, arrayMemoryModel);
+					numMemoryModels++;
 				} else {
 					// should never happen
 					Log.warning("Array instantiation (" + arrayInstantiation.address().toAddressString() + ") has multiple memory models.");
 				}
 			}
 		}
+		return numMemoryModels;
 	}
 	
-	public static void rewriteArrayComponents(PointsTo pointsTo){
+	public static long rewriteArrayComponents(PointsTo pointsTo){
+		arrayNumber = 1;
 		// first delete all array components
 		AtlasSet<Node> arrayComponents = Common.resolve(new NullProgressMonitor(), Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents)).eval().nodes();
 		for(GraphElement arrayComponent : arrayComponents){
@@ -94,6 +102,7 @@ public class GraphEnhancements {
 				Graph.U.addEdge(arrayReadEdge);
 			}
 		}
+		return arrayNumber-1;
 	}
 	
 	private static int arrayNumber = 1;
@@ -117,15 +126,19 @@ public class GraphEnhancements {
 
 	/**
 	 * Converts temporary sets to tags and attributes
+	 * @return 
 	 */
-	public static void serializeAliases(PointsTo pointsTo) {
+	public static long serializeAliases(PointsTo pointsTo) {
+		long numAliasesTags = 0;
 		AtlasSet<Node> addressedObjects = pointsTo.getAddressedNodes();
 		for(Node addressedObject : addressedObjects){
 			HashSet<Integer> pointsToSet = pointsTo.getAliasAddresses(addressedObject);
 			for(Integer address : pointsToSet){
 				addressedObject.tag(PointsToAnalysis.POINTS_TO_PREFIX + address);
+				numAliasesTags++;
 			}
 		}
+		return numAliasesTags;
 	}
 	
 }

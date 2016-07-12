@@ -4,6 +4,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.ensoftcorp.atlas.core.indexing.providers.ToolboxIndexingStage;
 import com.ensoftcorp.atlas.core.log.Log;
+import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.pointsto.analysis.JimplePointsTo;
 import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
 import com.ensoftcorp.open.pointsto.utilities.GraphEnhancements;
@@ -31,13 +33,23 @@ public class CodemapStage implements ToolboxIndexingStage {
 				jimplePointsTo.run();
 				
 				// make some graph enhancements
-				Log.info("Serializing points-to results...");
-				GraphEnhancements.serializeArrayMemoryModels(jimplePointsTo);
-				GraphEnhancements.rewriteArrayComponents(jimplePointsTo);
-				GraphEnhancements.tagInferredEdges(jimplePointsTo);
-				GraphEnhancements.serializeAliases(jimplePointsTo);
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Enhancing graph with points-to results...");
+				
+				long numMemoryModels = GraphEnhancements.serializeArrayMemoryModels(jimplePointsTo);
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Attributed " + numMemoryModels + " array memory models.");
+				
+				long numArrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes().size();
+				long numRewrittenArrayComponents = GraphEnhancements.rewriteArrayComponents(jimplePointsTo);
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Rewrote " + numArrayComponents + " array components to " + numRewrittenArrayComponents + " array components.");
+				
+				long numInferredDFEdges = GraphEnhancements.tagInferredEdges(jimplePointsTo);
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Inferred " + numInferredDFEdges + " data flow edges.");
+				
+				long numTaggedAliases = GraphEnhancements.serializeAliases(jimplePointsTo);
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numTaggedAliases + " aliasing tags.");
 				
 				// throw away references we don't need anymore
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Disposing temporary resources...");
 				jimplePointsTo.dispose();
 			}
 		} catch (Exception e) {

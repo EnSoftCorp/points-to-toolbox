@@ -2,7 +2,6 @@ package com.ensoftcorp.open.pointsto.ui.smart;
 
 import java.awt.Color;
 
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -17,7 +16,6 @@ import com.ensoftcorp.atlas.ui.scripts.selections.FilteringAtlasSmartViewScript;
 import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.pointsto.common.PointsToAnalysis;
-import com.ensoftcorp.open.pointsto.log.Log;
 
 public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartViewScript implements IResizableScript {
 
