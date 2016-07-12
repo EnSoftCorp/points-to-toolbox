@@ -10,9 +10,9 @@ package com.ensoftcorp.open.pointsto.utilities;
  */
 public class AddressFactory {
 
-	private long address = 0;
+	private int address = 0;
 	
-	public long getNewAddress(){
+	public int getNewAddress(){
 		return address++;
 	}
 	

@@ -4,27 +4,46 @@ import java.util.HashSet;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
+import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.index.Index;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.pointsto.analysis.PointsTo;
-import com.ensoftcorp.open.pointsto.common.Constants;
+import com.ensoftcorp.open.pointsto.common.PointsToAnalysis;
+import com.ensoftcorp.open.pointsto.log.Log;
 
 /**
- * Utilities for making enhancements to the Atlas graph based on points-to
- * results
+ * Utilities for making enhancements to the Atlas graph based on points-to results
  * 
  * @author Ben Holland
  */
 public class GraphEnhancements {
 	
 	public static void tagInferredEdges(PointsTo pointsTo){
-		// TODO: bless interprocedural invocation data flow edges or remove unblessed edges
+		// bless interprocedural invocation data flow edges
+		for(Edge dfEdge : new AtlasHashSet<Edge>(pointsTo.getInferredDataFlowGraph().eval().edges())){
+			dfEdge.tag(PointsToAnalysis.INFERRED);
+		}
+	}
+	
+	public static void serializeArrayMemoryModels(PointsTo pointsTo){
+		Q arrayInstantiations = Common.universe().nodesTaggedWithAny(XCSG.ArrayInstantiation);
+		for(Node arrayInstantiation : arrayInstantiations.eval().nodes()){
+			for(Integer address : pointsTo.getAliasAddresses(arrayInstantiation)){
+				if(!arrayInstantiation.hasAttr(PointsToAnalysis.ARRAY_MEMORY_MODEL)){
+					arrayInstantiation.putAttr(PointsToAnalysis.ARRAY_MEMORY_MODEL, pointsTo.getArrayMemoryModel(address));
+				} else {
+					// should never happen
+					Log.warning("Array instantiation (" + arrayInstantiation.address().toAddressString() + ") has multiple memory models.");
+				}
+			}
+		}
 	}
 	
 	public static void rewriteArrayComponents(PointsTo pointsTo){
@@ -43,7 +62,7 @@ public class GraphEnhancements {
 		// create a new array component for each array instantiation
 		Q arrayInstantiations = Common.universe().nodesTaggedWithAny(XCSG.ArrayInstantiation);
 		for(Node arrayInstantiation : arrayInstantiations.eval().nodes()){
-			for(Long address : pointsTo.getAliasAddresses(arrayInstantiation)){
+			for(Integer address : pointsTo.getAliasAddresses(arrayInstantiation)){
 				findOrCreateArrayComponent(pointsTo, address);
 			}
 		}
@@ -51,13 +70,13 @@ public class GraphEnhancements {
 		// connect each array write to an array component
 		for(Node arrayWrite : arrayWrites){
 			Node array = arrayIdentityForEdges.predecessors(Common.toQ(arrayWrite)).eval().nodes().getFirst();
-			for(Long address : pointsTo.getAliasAddresses(array)){
+			for(Integer address : pointsTo.getAliasAddresses(array)){
 				GraphElement arrayComponent = findOrCreateArrayComponent(pointsTo, address);
 				// create interprocedural data flow edge from array write node to array component node
 				GraphElement arrayWriteEdge = Graph.U.createEdge(arrayWrite, arrayComponent);
 				arrayWriteEdge.tag(XCSG.InterproceduralDataFlow);
 				arrayWriteEdge.tag(Index.INDEX_VIEW_TAG);
-				arrayWriteEdge.tag(Constants.INFERRED);
+				arrayWriteEdge.tag(PointsToAnalysis.INFERRED);
 				Graph.U.addEdge(arrayWriteEdge);
 			}
 		}
@@ -65,13 +84,13 @@ public class GraphEnhancements {
 		// connect each array component to an array read
 		for(Node arrayRead : arrayReads){
 			Node array = arrayIdentityForEdges.predecessors(Common.toQ(arrayRead)).eval().nodes().getFirst();
-			for(Long address : pointsTo.getAliasAddresses(array)){
+			for(Integer address : pointsTo.getAliasAddresses(array)){
 				Node arrayComponent = findOrCreateArrayComponent(pointsTo, address);
 				// create interprocedural data flow edge from array component node to array read node
 				GraphElement arrayReadEdge = Graph.U.createEdge(arrayComponent, arrayRead);
 				arrayReadEdge.tag(XCSG.InterproceduralDataFlow);
 				arrayReadEdge.tag(Index.INDEX_VIEW_TAG);
-				arrayReadEdge.tag(Constants.INFERRED);
+				arrayReadEdge.tag(PointsToAnalysis.INFERRED);
 				Graph.U.addEdge(arrayReadEdge);
 			}
 		}
@@ -79,7 +98,7 @@ public class GraphEnhancements {
 	
 	private static int arrayNumber = 1;
 	
-	private static Node findOrCreateArrayComponent(PointsTo pointsTo, Long address){
+	private static Node findOrCreateArrayComponent(PointsTo pointsTo, Integer address){
 		Q addressedObjects = Common.toQ(pointsTo.getAddressedNodes());
 		AtlasSet<Node> arrayComponents = addressedObjects.nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes();
 		for(Node arrayComponent : arrayComponents){
@@ -92,10 +111,7 @@ public class GraphEnhancements {
 		arrayComponent.tag(XCSG.ArrayComponents);
 		arrayComponent.tag(Index.INDEX_VIEW_TAG);
 		arrayComponent.putAttr(XCSG.name, "@[" + (arrayNumber++) + "]");
-		arrayComponent.putAttr(Constants.POINTS_TO_ARRAY_ADDRESS, address);
-		// adding to points to set for consistency, even though points to set
-		// for array component is only ever 1 address
-		pointsTo.getAliasAddresses(arrayComponent).add(address);
+		arrayComponent.tag(PointsToAnalysis.POINTS_TO_PREFIX + address);
 		return arrayComponent;
 	}
 
@@ -105,10 +121,9 @@ public class GraphEnhancements {
 	public static void serializeAliases(PointsTo pointsTo) {
 		AtlasSet<Node> addressedObjects = pointsTo.getAddressedNodes();
 		for(Node addressedObject : addressedObjects){
-			HashSet<Long> pointsToSet = pointsTo.getAliasAddresses(addressedObject);
-			addressedObject.putAttr(Constants.POINTS_TO_ATTRIBUTE, pointsToSet.toString());
-			for(Long address : pointsToSet){
-				addressedObject.tag(Constants.POINTS_TO_TAG_PREFIX + address);
+			HashSet<Integer> pointsToSet = pointsTo.getAliasAddresses(addressedObject);
+			for(Integer address : pointsToSet){
+				addressedObject.tag(PointsToAnalysis.POINTS_TO_PREFIX + address);
 			}
 		}
 	}

@@ -21,7 +21,7 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.java.core.script.CommonQueries;
 import com.ensoftcorp.open.pointsto.utilities.AddressFactory;
-import com.ensoftcorp.open.pointsto.utilities.PointsToAnalysis;
+import com.ensoftcorp.open.pointsto.utilities.AnalysisUtilities;
 import com.ensoftcorp.open.pointsto.utilities.SubtypeCache;
 import com.ensoftcorp.open.pointsto.utilities.frontier.FIFOFrontier;
 import com.ensoftcorp.open.pointsto.utilities.frontier.Frontier;
@@ -48,11 +48,11 @@ public class JimplePointsTo extends PointsTo {
 	 * @return 
 	 */
 	@SuppressWarnings("unchecked")
-	public static HashSet<Long> getPointsToSet(Node node){
+	public static HashSet<Integer> getPointsToSet(Node node){
 		if(node.hasAttr(POINTS_TO_SET)){
-			return (HashSet<Long>) node.getAttr(POINTS_TO_SET);
+			return (HashSet<Integer>) node.getAttr(POINTS_TO_SET);
 		} else {
-			HashSet<Long> pointsToIds = new HashSet<Long>();
+			HashSet<Integer> pointsToIds = new HashSet<Integer>();
 			node.putAttr(POINTS_TO_SET, pointsToIds);
 			return pointsToIds;
 		}
@@ -74,7 +74,7 @@ public class JimplePointsTo extends PointsTo {
 	}
 	
 	@Override
-	public HashSet<Long> getAliasAddresses(Node node) {
+	public HashSet<Integer> getAliasAddresses(Node node) {
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
@@ -89,12 +89,12 @@ public class JimplePointsTo extends PointsTo {
 	/**
 	 * Defines the address of the null type
 	 */
-	private final Long NULL_TYPE_ADDRESS = addressFactory.getNewAddress();
+	private final Integer NULL_TYPE_ADDRESS = addressFactory.getNewAddress();
 	
 	/**
 	 * A convenience mapping of the addresses to instantiations
 	 */
-	private final CompactHashMap<Long,Node> addressToInstantiation = new CompactHashMap<Long,Node>();
+	private final CompactHashMap<Integer,Node> addressToInstantiation = new CompactHashMap<Integer,Node>();
 
 	@Override
 	public AtlasSet<Node> getAddressedNodes() {
@@ -105,7 +105,7 @@ public class JimplePointsTo extends PointsTo {
 	}
 	
 	@Override
-	public HashSet<Long> getArrayMemoryModel(Long address) {
+	public HashSet<Integer> getArrayMemoryModel(Integer address) {
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
@@ -113,7 +113,17 @@ public class JimplePointsTo extends PointsTo {
 	}
 
 	@Override
-	public Node getInstantiation(Long address) {
+	public HashSet<Integer> getArrayMemoryModels() {
+		if(isDisposed){
+			throw new RuntimeException("Points-to analysis was disposed.");
+		}
+		HashSet<Integer> result = new HashSet<Integer>();
+		result.addAll(arrayMemoryModel.keySet());
+		return result;
+	}
+	
+	@Override
+	public Node getInstantiation(Integer address) {
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
@@ -121,7 +131,7 @@ public class JimplePointsTo extends PointsTo {
 	}
 
 	@Override
-	public Node getType(Long address) {
+	public Node getType(Integer address) {
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
@@ -131,7 +141,7 @@ public class JimplePointsTo extends PointsTo {
 	/**
 	 * A convenience mapping of addresses to types
 	 */
-	private final CompactHashMap<Long,Node> addressToType = new CompactHashMap<Long,Node>();
+	private final CompactHashMap<Integer,Node> addressToType = new CompactHashMap<Integer,Node>();
 	
 	/**
 	 * A worklist of nodes containing points-to information to propagate
@@ -159,7 +169,7 @@ public class JimplePointsTo extends PointsTo {
 	 * address2->{nullType}, and address1 would have propagated from the
 	 * "new Foo[x][y]" array instantiation.
 	 */
-	private final CompactHashMap<Long,HashSet<Long>> arrayMemoryModel = new CompactHashMap<Long,HashSet<Long>>();
+	private final CompactHashMap<Integer,HashSet<Integer>> arrayMemoryModel = new CompactHashMap<Integer,HashSet<Integer>>();
 
 	/*
 	 * The underlying data flow graph used to propagate points-to information.
@@ -201,11 +211,11 @@ public class JimplePointsTo extends PointsTo {
 		// create unique addresses for types of new statements and array instantiations
 		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation);
 		for(Node newRef : newRefs.eval().nodes()){
-			Node statedType = PointsToAnalysis.statedType(newRef);
+			Node statedType = AnalysisUtilities.statedType(newRef);
 			if(statedType != null){
 				// create a new address for the reference and add a  
 				// mapping from the address to the state type
-				Long address = addressFactory.getNewAddress();
+				Integer address = addressFactory.getNewAddress();
 				getPointsToSet(newRef).add(address);
 				addressToInstantiation.put(address, newRef);
 				addressToType.put(address, statedType);
@@ -220,12 +230,12 @@ public class JimplePointsTo extends PointsTo {
 					// the top dimension has already been addressed, so start at dimension minus 1
 					for(int i=arrayDimension-1; i>0; i--){
 						// map array dimension address to array dimension type
-						Long arrayDimensionAddress = addressFactory.getNewAddress();
+						Integer arrayDimensionAddress = addressFactory.getNewAddress();
 						addressToInstantiation.put(arrayDimensionAddress, newRef);
-						arrayType = PointsToAnalysis.getArrayTypeForDimension(arrayElementType, i);
+						arrayType = AnalysisUtilities.getArrayTypeForDimension(arrayElementType, i);
 						addressToType.put(arrayDimensionAddress, arrayType);
 						// map address containing dimension to array dimension, address1 -> set: { address2 }
-						HashSet<Long> arrayValueAddresses = new HashSet<Long>();
+						HashSet<Integer> arrayValueAddresses = new HashSet<Integer>();
 						arrayValueAddresses.add(arrayDimensionAddress);
 						arrayMemoryModel.put(address, arrayValueAddresses);
 						// update the current address to the next array level
@@ -233,7 +243,7 @@ public class JimplePointsTo extends PointsTo {
 					}
 					// map lowest level of arrayAddress -> set: { NULL_TYPE_ADDRESS }
 					// since array contents are initialized to null by default
-					HashSet<Long> arrayValueAddresses = new HashSet<Long>();
+					HashSet<Integer> arrayValueAddresses = new HashSet<Integer>();
 					arrayValueAddresses.add(NULL_TYPE_ADDRESS);
 					arrayMemoryModel.put(address, arrayValueAddresses);
 				}
@@ -282,7 +292,7 @@ public class JimplePointsTo extends PointsTo {
 		
 		// create the initial underlying data flow graph that will get dynamically
 		// updated as new dynamic dispatches are resolved
-		Q conservativeDF = PointsToAnalysis.getConservativeDataFlow(monitor);
+		Q conservativeDF = AnalysisUtilities.getConservativeDataFlow(monitor);
 		dfEdges = new AtlasHashSet<GraphElement>();
 		dfEdges.addAll(conservativeDF.eval().edges());
 		dfNodes = new AtlasHashSet<GraphElement>();
@@ -290,7 +300,7 @@ public class JimplePointsTo extends PointsTo {
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		
 		// create graphs and sets for resolving dynamic dispatches
-		AtlasHashSet<Node> dynamicCallsiteThisSet = PointsToAnalysis.getDynamicCallsiteThisSet(monitor);
+		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
 		Graph dfInvokeThisGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.IdentityPassedTo)).eval();
 		Graph methodSignatureGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.InvokedFunction, XCSG.InvokedSignature)).eval();
 
@@ -305,7 +315,7 @@ public class JimplePointsTo extends PointsTo {
 			Node from = frontier.next();
 			AtlasSet<Edge> outEdges = dfGraph.edges(from, NodeDirection.OUT);
 
-			// propagate points-to information along each outgoing data flow edge
+			// propagate points-to information aInteger each outgoing data flow edge
 			for(GraphElement edge : outEdges){
 				Node to = edge.getNode(EdgeDirection.TO);
 
@@ -331,13 +341,13 @@ public class JimplePointsTo extends PointsTo {
 						GraphElement methodSignature = methodSignatureGraph.edges(callsite, NodeDirection.OUT).getFirst().getNode(EdgeDirection.TO);
 						
 						AtlasSet<GraphElement> runtimeTypes = new AtlasHashSet<GraphElement>();
-						for(Long address : getPointsToSet(to)){
+						for(Integer address : getPointsToSet(to)){
 							runtimeTypes.add(addressToType.get(address));
 						}
 						
 						// resolve any potential dynamic dispatches
 						AtlasSet<Node> resolvedDispatches = CommonQueries.dynamicDispatch(Common.toQ(runtimeTypes), Common.toQ(methodSignature)).eval().nodes();
-						AtlasSet<Node> signatureSet = PointsToAnalysis.getSignatureSet(resolvedDispatches);
+						AtlasSet<Node> signatureSet = AnalysisUtilities.getSignatureSet(resolvedDispatches);
 						
 						// ASSERT: only DF_INTERPROCEDURAL edges have a CALL_SITE_ID
 						Address csid = (Address) callsite.getAttr(Attr.Node.CALL_SITE_ID);
@@ -360,8 +370,8 @@ public class JimplePointsTo extends PointsTo {
 									
 									// if edge is between two object references and the origin has type
 									// information that the dest does not have, add origin to the frontier
-									HashSet<Long> originAddresses = getPointsToSet(origin);
-									HashSet<Long> destAddresses = getPointsToSet(dest);
+									HashSet<Integer> originAddresses = getPointsToSet(origin);
+									HashSet<Integer> destAddresses = getPointsToSet(dest);
 									if(!destAddresses.containsAll(originAddresses)){
 										frontier.add(origin);
 									}
@@ -382,15 +392,15 @@ public class JimplePointsTo extends PointsTo {
 						// new addresses of array values from new array writes to corresponding array 
 						// reads or array writes to new array reads, reads will be added to the frontier
 						// if new information is available to propagate
-						for(Node arrayWrite : PointsToAnalysis.getArrayWriteAccessesForArrayReference(to)){
+						for(Node arrayWrite : AnalysisUtilities.getArrayWriteAccessesForArrayReference(to)){
 							updateArrayMemoryModels(arrayWrite);
 						}
 						
 						// "to" node is an array read reference, so we may need to read out values of
 						// the array memory model and propagate them onward by adding the array reads
 						// to the frontier
-						for(Node arrayRead : PointsToAnalysis.getArrayReadAccessesForArrayReference(to)){
-							for(Long arrayReferenceAddress : getPointsToSet(to)){
+						for(Node arrayRead : AnalysisUtilities.getArrayReadAccessesForArrayReference(to)){
+							for(Integer arrayReferenceAddress : getPointsToSet(to)){
 								if(getPointsToSet(arrayRead).addAll(arrayMemoryModel.get(arrayReferenceAddress))){
 									frontier.add(arrayRead);
 								}
@@ -414,20 +424,20 @@ public class JimplePointsTo extends PointsTo {
 	 */
 	private boolean transferTypeCompatibleAddresses(Node from, Node to){
 		boolean toReceivedNewAddresses = false;
-		HashSet<Long> fromAddresses = getPointsToSet(from);
-		HashSet<Long> toAddresses = getPointsToSet(to);		
+		HashSet<Integer> fromAddresses = getPointsToSet(from);
+		HashSet<Integer> toAddresses = getPointsToSet(to);		
 		// need to check type compatibility
-		Node toStatedType = PointsToAnalysis.statedType(to);
+		Node toStatedType = AnalysisUtilities.statedType(to);
 		if(toStatedType != null){
 			// if the from type is compatible with the compatible to type set, add it
-			for(Long fromAddress : fromAddresses){
+			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
 				if (subtypes.isSubtypeOf(addressType, toStatedType)) {
 					toReceivedNewAddresses |= toAddresses.add(fromAddress);
 				}
 			}
 		} else {
-			// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Long.valueOf(<address>, 16).longValue())))
+			// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
 			Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
 		}
 		return toReceivedNewAddresses;
@@ -444,19 +454,19 @@ public class JimplePointsTo extends PointsTo {
 	 */
 	private void updateArrayMemoryModels(Node arrayWrite) {
 		// for each REFW corresponding to the AW
-		for(Node arrayWriteReference : PointsToAnalysis.getArrayReferencesForArrayAccess(arrayWrite)){
+		for(Node arrayWriteReference : AnalysisUtilities.getArrayReferencesForArrayAccess(arrayWrite)){
 			// for each REFW address
-			for(Long arrayWriteReferenceAddress : getPointsToSet(arrayWriteReference)){
+			for(Integer arrayWriteReferenceAddress : getPointsToSet(arrayWriteReference)){
 				// add the AW addresses to the the array memory values set for the array REFW address
 				if(arrayMemoryModel.get(arrayWriteReferenceAddress).addAll(getPointsToSet(arrayWrite))){
 					// if new addresses were added to the array, propagate them to the corresponding reads
 					Q allArrayReads = Common.universe().nodesTaggedWithAny(XCSG.ArrayRead);
 					Q allArrayReadReferences = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor).predecessors(allArrayReads);
 					for(Node arrayReadReference : allArrayReadReferences.eval().nodes()){
-						HashSet<Long> arrayReadReferenceAddresses = getPointsToSet(arrayReadReference);
+						HashSet<Integer> arrayReadReferenceAddresses = getPointsToSet(arrayReadReference);
 						if(arrayReadReferenceAddresses.contains(arrayWriteReferenceAddress)){
 							// transfer addresses from AW to each AR corresponding to the REFR with a matching address
-							AtlasSet<Node> arrayReads = PointsToAnalysis.getArrayReadAccessesForArrayReference(arrayReadReference);
+							AtlasSet<Node> arrayReads = AnalysisUtilities.getArrayReadAccessesForArrayReference(arrayReadReference);
 							for(Node arrayRead : arrayReads){
 								if(transferTypeCompatibleAddressesFromArrayMemoryModel(arrayWriteReferenceAddress, arrayRead)){
 									// if we transfered new addresses add the AR to the frontier
@@ -479,15 +489,15 @@ public class JimplePointsTo extends PointsTo {
 	 * @param arrayRead
 	 * @return
 	 */
-	private boolean transferTypeCompatibleAddressesFromArrayMemoryModel(Long arrayReferenceAddress, Node arrayRead) {
+	private boolean transferTypeCompatibleAddressesFromArrayMemoryModel(Integer arrayReferenceAddress, Node arrayRead) {
 		boolean readReceivedNewAddresses = false;
-		HashSet<Long> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
-		HashSet<Long> toAddresses = getPointsToSet(arrayRead);		
+		HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
+		HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
 		// need to check type compatibility
-		Node toStatedType = PointsToAnalysis.statedType(arrayRead);
+		Node toStatedType = AnalysisUtilities.statedType(arrayRead);
 		if(toStatedType != null){
 			// if the from type is compatible with the compatible to type set, add it
-			for(Long fromAddress : fromAddresses){
+			for(Integer fromAddress : fromAddresses){
 				if(subtypes.isSubtypeOf(addressToType.get(fromAddress), toStatedType)){
 					readReceivedNewAddresses |= toAddresses.add(fromAddress);
 				}

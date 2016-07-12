@@ -38,7 +38,7 @@ public abstract class PointsTo {
 		if(hasRun){
 			return 0;
 		} else {
-			long start = System.currentTimeMillis();
+			Long start = System.currentTimeMillis();
 			Log.info("Starting " + getClass().getSimpleName() + " Points-to Analysis");
 			runAnalysis();
 			Log.info("Finished " + getClass().getSimpleName() + " Points-to Analysis");
@@ -56,26 +56,32 @@ public abstract class PointsTo {
 	 * Returns the mapping of arrays to the array's components
 	 * @return
 	 */
-	public abstract HashSet<Long> getArrayMemoryModel(Long address);
+	public abstract HashSet<Integer> getArrayMemoryModel(Integer address);
+	
+	/**
+	 * Returns the array memory model addresses
+	 * @return
+	 */
+	public abstract HashSet<Integer> getArrayMemoryModels();
 	
 	/**
 	 * Returns a set of alias addresses
 	 * @param node
 	 * @return
 	 */
-	public abstract HashSet<Long> getAliasAddresses(Node node);
+	public abstract HashSet<Integer> getAliasAddresses(Node node);
 	
 	/**
 	 * Returns the mapping of an address to its corresponding instantiation
 	 * @return
 	 */
-	public abstract Node getInstantiation(Long address);
+	public abstract Node getInstantiation(Integer address);
 
 	/**
 	 * Returns the mapping of an address to its corresponding static type
 	 * @return
 	 */
-	public abstract Node getType(Long address);
+	public abstract Node getType(Integer address);
 	
 	/**
 	 * Returns a set of all addressed nodes
