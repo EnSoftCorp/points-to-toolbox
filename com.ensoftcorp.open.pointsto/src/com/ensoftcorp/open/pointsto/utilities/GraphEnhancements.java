@@ -27,7 +27,7 @@ public class GraphEnhancements {
 	
 	public static void tagInferredEdges(PointsTo pointsTo){
 		// bless interprocedural invocation data flow edges
-		for(Edge dfEdge : new AtlasHashSet<Edge>(pointsTo.getInferredDataFlowGraph().eval().edges())){
+		for(Edge dfEdge : new AtlasHashSet<Edge>(pointsTo.getInferredDataFlowGraph().edges())){
 			dfEdge.tag(PointsToAnalysis.INFERRED);
 		}
 	}

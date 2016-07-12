@@ -31,6 +31,7 @@ public class CodemapStage implements ToolboxIndexingStage {
 				jimplePointsTo.run();
 				
 				// make some graph enhancements
+				Log.info("Serializing points-to results...");
 				GraphEnhancements.serializeArrayMemoryModels(jimplePointsTo);
 				GraphEnhancements.rewriteArrayComponents(jimplePointsTo);
 				GraphEnhancements.tagInferredEdges(jimplePointsTo);

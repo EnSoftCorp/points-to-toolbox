@@ -45,13 +45,23 @@ public class PointsToAnalysis {
 	 * @return
 	 */
 	public static AtlasSet<Node> getAliases(Node node){
-		Q aliases = Common.universe().nodesTaggedWithAny(getPointsToTags(node));
-		return new AtlasHashSet<Node>(aliases.eval().nodes());
+		String[] tags = getPointsToTags(node);
+		if(tags.length == 0){
+			return new AtlasHashSet<Node>();
+		} else {
+			Q aliases = Common.universe().nodesTaggedWithAny(tags);
+			return new AtlasHashSet<Node>(aliases.eval().nodes());
+		}
 	}
 	
 	public static AtlasSet<Node> getArrayMemoryAliases(Node arrayInstantiation){
-		Q aliases = Common.universe().nodesTaggedWithAny(getArrayMemoryPointsToTags(arrayInstantiation));
-		return new AtlasHashSet<Node>(aliases.eval().nodes());
+		String[] tags = getArrayMemoryPointsToTags(arrayInstantiation);
+		if(tags.length == 0){
+			return new AtlasHashSet<Node>();
+		} else {
+			Q aliases = Common.universe().nodesTaggedWithAny(tags);
+			return new AtlasHashSet<Node>(aliases.eval().nodes());
+		}
 	}
 	
 	public static String[] getArrayMemoryPointsToTags(Node arrayInstantiation){

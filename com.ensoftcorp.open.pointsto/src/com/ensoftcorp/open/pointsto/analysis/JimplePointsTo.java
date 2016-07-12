@@ -101,7 +101,7 @@ public class JimplePointsTo extends PointsTo {
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
-		return new AtlasHashSet<Node>(Common.universe().nodesTaggedWithAny(POINTS_TO_SET).eval().nodes());
+		return new AtlasHashSet<Node>(Common.universe().selectNode(POINTS_TO_SET).eval().nodes());
 	}
 	
 	@Override
@@ -184,8 +184,8 @@ public class JimplePointsTo extends PointsTo {
 	private AtlasSet<GraphElement> dfEdges = new AtlasHashSet<GraphElement>();
 	
 	@Override
-	public Q getInferredDataFlowGraph() {
-		return Common.resolve(monitor, Common.toQ(dfGraph));
+	public Graph getInferredDataFlowGraph() {
+		return dfGraph;
 	}
 	
 	/**

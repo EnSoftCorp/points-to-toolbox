@@ -2,10 +2,10 @@ package com.ensoftcorp.open.pointsto.analysis;
 
 import java.util.HashSet;
 
+import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.log.Log;
-import com.ensoftcorp.atlas.core.query.Q;
 
 /**
  * An abstract class defining the features that a points-to analyzer should
@@ -39,9 +39,9 @@ public abstract class PointsTo {
 			return 0;
 		} else {
 			Long start = System.currentTimeMillis();
-			Log.info("Starting " + getClass().getSimpleName() + " Points-to Analysis");
+			Log.info("Starting " + getClass().getSimpleName() + " points-to analysis");
 			runAnalysis();
-			Log.info("Finished " + getClass().getSimpleName() + " Points-to Analysis");
+			Log.info("Finished " + getClass().getSimpleName() + " points-to analysis");
 			hasRun = true;
 			return System.currentTimeMillis() - start;
 		}
@@ -93,7 +93,7 @@ public abstract class PointsTo {
 	 * Returns the inferred data flow graph as the results of the fixed point analysis
 	 * @return
 	 */
-	public abstract Q getInferredDataFlowGraph();
+	public abstract Graph getInferredDataFlowGraph();
 	
 	public boolean isDisposed(){
 		return isDisposed;
