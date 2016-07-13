@@ -11,6 +11,14 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	private static boolean initialized = false;
 	
 	/**
+	 * Returns true if any points-to analysis is enabled
+	 * @return
+	 */
+	public static boolean isPointsToAnalysisEnabled(){
+		return isJavaPointsToAnalysisEnabled() || isJimplePointsToAnalysisEnabled();
+	}
+	
+	/**
 	 * Enable/disable general logging
 	 */
 	public static final String GENERAL_LOGGING = "GENERAL_LOGGING";
