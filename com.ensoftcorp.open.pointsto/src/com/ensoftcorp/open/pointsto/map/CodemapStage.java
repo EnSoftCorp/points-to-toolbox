@@ -3,10 +3,10 @@ package com.ensoftcorp.open.pointsto.map;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.ensoftcorp.atlas.core.indexing.providers.ToolboxIndexingStage;
-import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.pointsto.analysis.JimplePointsTo;
+import com.ensoftcorp.open.pointsto.log.Log;
 import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
 import com.ensoftcorp.open.pointsto.utilities.GraphEnhancements;
 

@@ -5,7 +5,7 @@ import java.util.HashSet;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
-import com.ensoftcorp.atlas.core.log.Log;
+import com.ensoftcorp.open.pointsto.log.Log;
 
 /**
  * An abstract class defining the features that a points-to analyzer should
