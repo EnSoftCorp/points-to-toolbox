@@ -27,11 +27,11 @@ public class PointsToAnalysis {
 	public static final String POINTS_TO_PREFIX = "POINTS_TO_";
 	
 	/**
-	 * This attribute is placed on array instantiations to hold a serialized
+	 * This tag is placed on array instantiations to hold a serialized
 	 * form of the addresses used to model an array's memory. An array is
 	 * assigned an address for each of its dimensions.
 	 */
-	public static final String ARRAY_MEMORY_MODEL = "ARRAY_MEMORY_MODEL";
+	public static final String ARRAY_MEMORY_MODEL_PREFIX = "ARRAY_MEMORY_MODEL_";
 
 	/**
 	 * Applied to edges to indicate that the edge's runtime possibility was
@@ -54,23 +54,24 @@ public class PointsToAnalysis {
 		}
 	}
 	
-	public static AtlasSet<Node> getArrayMemoryAliases(Node arrayInstantiation){
-		String[] tags = getArrayMemoryPointsToTags(arrayInstantiation);
-		if(tags.length == 0){
-			return new AtlasHashSet<Node>();
-		} else {
-			Q aliases = Common.universe().nodesTaggedWithAny(tags);
-			return new AtlasHashSet<Node>(aliases.eval().nodes());
+	public static String[] getArrayMemoryModelPointsToTags(Node arrayInstantiation){
+		ArrayList<String> tags = new ArrayList<String>();
+		for(String tag : arrayInstantiation.tags()){
+			if(tag.startsWith(ARRAY_MEMORY_MODEL_PREFIX)){
+				tags.add(POINTS_TO_PREFIX + tag.replace(ARRAY_MEMORY_MODEL_PREFIX, POINTS_TO_PREFIX));
+			}
 		}
+		String[] result = new String[tags.size()];
+		result = tags.toArray(result);
+		return result;
 	}
 	
-	public static String[] getArrayMemoryPointsToTags(Node arrayInstantiation){
+	public static String[] getArrayMemoryModelTags(Node arrayInstantiation){
 		ArrayList<String> tags = new ArrayList<String>();
-		String s = arrayInstantiation.getAttr(ARRAY_MEMORY_MODEL).toString();
-		s = s.substring(1, s.length()-2);
-		String[] addresses = s.split(",");
-		for(String address : addresses){
-			tags.add(POINTS_TO_PREFIX + address);
+		for(String tag : arrayInstantiation.tags()){
+			if(tag.startsWith(ARRAY_MEMORY_MODEL_PREFIX)){
+				tags.add(tag);
+			}
 		}
 		String[] result = new String[tags.size()];
 		result = tags.toArray(result);

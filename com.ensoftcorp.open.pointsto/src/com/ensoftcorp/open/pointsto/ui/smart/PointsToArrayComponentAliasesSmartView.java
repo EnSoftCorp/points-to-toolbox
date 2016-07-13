@@ -69,7 +69,7 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 		// compute what to show for current steps
 		Q f = arrayComponentInstantiations.forwardStepOn(completeResult, forward);
 		Q r = arrayComponents.reverseStepOn(completeResult, reverse);
-		Q result = f.union(r);
+		Q result = f.union(r).union(filteredSelection);;
 		
 		// compute what is on the frontier
 		Q frontierForward = arrayComponentInstantiations.forwardStepOn(completeResult, forward+1);

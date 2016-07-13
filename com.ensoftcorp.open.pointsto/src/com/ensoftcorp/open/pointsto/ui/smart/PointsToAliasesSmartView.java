@@ -48,7 +48,7 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 			if(!instantiations.isEmpty()){
 				instantiationSet.addAll(instantiations);
 			} else {
-				Log.warning("No instantation for node: " + node.address().toAddressString());
+				Log.warning("No known instantation for reference: " + node.address().toAddressString());
 			}
 		}
 		
@@ -69,7 +69,7 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 		// compute what to show for current steps
 		Q f = instantations.forwardStepOn(completeResult, forward);
 		Q r = filteredSelection.reverseStepOn(completeResult, reverse);
-		Q result = f.union(r);
+		Q result = f.union(r).union(filteredSelection);;
 		
 		// compute what is on the frontier
 		Q frontierForward = instantations.forwardStepOn(completeResult, forward+1);

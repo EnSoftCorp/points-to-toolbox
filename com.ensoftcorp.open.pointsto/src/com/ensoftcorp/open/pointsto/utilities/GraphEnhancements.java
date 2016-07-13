@@ -16,7 +16,6 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.pointsto.analysis.PointsTo;
 import com.ensoftcorp.open.pointsto.common.PointsToAnalysis;
-import com.ensoftcorp.open.pointsto.log.Log;
 
 /**
  * Utilities for making enhancements to the Atlas graph based on points-to results
@@ -27,7 +26,7 @@ public class GraphEnhancements {
 	
 	public static long tagInferredEdges(PointsTo pointsTo){
 		long numInferredEdges = 0;
-		// bless interprocedural invocation data flow edges
+		// blessing interprocedural invocation data flow edges with inferred tag
 		for(Edge dfEdge : new AtlasHashSet<Edge>(pointsTo.getInferredDataFlowGraph().edges())){
 			dfEdge.tag(PointsToAnalysis.INFERRED);
 			numInferredEdges++;
@@ -39,14 +38,12 @@ public class GraphEnhancements {
 		long numMemoryModels = 0;
 		Q arrayInstantiations = Common.universe().nodesTaggedWithAny(XCSG.ArrayInstantiation);
 		for(Node arrayInstantiation : arrayInstantiations.eval().nodes()){
+			// should only have one alias address on the instantiation
 			for(Integer address : pointsTo.getAliasAddresses(arrayInstantiation)){
-				if(!arrayInstantiation.hasAttr(PointsToAnalysis.ARRAY_MEMORY_MODEL)){
-					HashSet<Integer> arrayMemoryModel = pointsTo.getArrayMemoryModel(address);
-					arrayInstantiation.putAttr(PointsToAnalysis.ARRAY_MEMORY_MODEL, arrayMemoryModel);
+				HashSet<Integer> arrayMemoryModel = pointsTo.getArrayMemoryModel(address);
+				for(Integer arrayMemoryModelAddress : arrayMemoryModel){
+					arrayInstantiation.tag(PointsToAnalysis.ARRAY_MEMORY_MODEL_PREFIX + arrayMemoryModelAddress);
 					numMemoryModels++;
-				} else {
-					// should never happen
-					Log.warning("Array instantiation (" + arrayInstantiation.address().toAddressString() + ") has multiple memory models.");
 				}
 			}
 		}
