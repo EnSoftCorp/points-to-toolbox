@@ -44,4 +44,11 @@ SOFTWARE.
       <discovery label="Atlas" url="http://download.ensoftcorp.com/atlas/eclipse"/>
    </url>
 
+   <plugin
+         id="com.ensoftcorp.open.pointsto"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>
