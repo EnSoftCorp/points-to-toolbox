@@ -55,7 +55,7 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 		Q arrayComponentInstantiations = Common.toQ(arrayComponentsInstantiationSet);
 
 		Highlighter h = new Highlighter();
-		h.highlight(arrayComponents, Color.CYAN);
+		h.highlight(arrayComponents, Color.YELLOW);
 		h.highlight(arrayComponentInstantiations, Color.RED);
 
 		// return a graph that contains the selected references in blue,

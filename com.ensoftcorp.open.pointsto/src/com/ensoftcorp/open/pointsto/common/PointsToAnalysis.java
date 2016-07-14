@@ -52,13 +52,12 @@ public class PointsToAnalysis {
 	
 	/**
 	 * Returns true if the alias is an array memory model
+	 * Does not consider null aliases
 	 * @param address
 	 * @return
 	 */
 	public static boolean isArrayMemoryModelAlias(String aliasTag){
-		if(aliasTag.equals(NULL_ARRAY_MEMORY_MODEL)){
-			return true;
-		} else if(aliasTag.equals(NULL_ALIAS)){
+		if(aliasTag.equals(NULL_ARRAY_MEMORY_MODEL) || aliasTag.equals(NULL_ALIAS)){
 			return false;
 		} else if(!aliasTag.startsWith(ALIAS_PREFIX)){
 			throw new IllegalArgumentException(aliasTag + " is not a valid alias tag.");
@@ -78,8 +77,12 @@ public class PointsToAnalysis {
 	 * @return
 	 */
 	private static boolean isArrayMemoryModelAddress(Integer address) {
-		return !Common.universe().nodesTaggedWithAny((ARRAY_MEMORY_MODEL_PREFIX + address), NULL_ARRAY_MEMORY_MODEL)
+		if(address == 0){
+			return true;
+		} else {
+			return !Common.universe().nodesTaggedWithAny((ARRAY_MEMORY_MODEL_PREFIX + address), NULL_ARRAY_MEMORY_MODEL)
 				.eval().nodes().isEmpty();
+		}
 	}
 	
 	public static boolean notAliases(Node ref1, Node ref2){
