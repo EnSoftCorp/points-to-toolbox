@@ -28,7 +28,10 @@ If you want to install from source for bleeding edge changes, first grab a copy 
 Note that version numbers are based off [Atlas](http://www.ensoftcorp.com/atlas/download/) version numbers.
 
 ### 3.0.8
-Atlas 3.x migrations, major rewrites to client analysis interfaces, all results are now serialized in Atlas graph as alias tags, array memory model tags, inferred data flow edges, and inferred runtime type of edges, some additional utlities for may and must alias queries
+- Atlas 3.x migrations
+- Major rewrites to client analysis interfaces, all results are now serialized in Atlas graph as alias tags, array memory model tags, inferred data flow edges, and inferred runtime type of edges
+- Added additional utlities for may and must alias queries
+- Enabled a beta Java source points-to analysis implementation
 
 ### 2.7.3
 - Bug fix for ghost edges in Smart Views
