@@ -37,21 +37,36 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 	@Override
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
 		Q filteredSelection = filter(event.getSelection());
-
+		
 		AtlasSet<Node> arrayComponentsSet = new AtlasHashSet<Node>();
 		AtlasSet<Node> arrayComponentInstantiationSet = new AtlasHashSet<Node>();
 		for(Node node : filteredSelection.eval().nodes()){
-			Q aliases = Common.toQ(PointsToAnalysis.getAliases(node));
-			Q arrayComponentAliases = aliases.nodesTaggedWithAny(XCSG.ArrayComponents);
-			for(Node arrayComponentAlias : arrayComponentAliases.eval().nodes()){
-				arrayComponentsSet.add(arrayComponentAlias);
-				AtlasSet<Node> arrayInstantiations = PointsToAnalysis.getAliases(arrayComponentAlias);
-				arrayComponentInstantiationSet.addAll(arrayInstantiations);
+			for(String aliasTag : PointsToAnalysis.getAliasTags(node)){
+				// if the array memory model has an alias then this element 
+				// could be an array (even if it doesn't look like it currently)
+				if(PointsToAnalysis.isArrayMemoryModelAlias(aliasTag)){
+					// get the array component with this alias
+					Q arrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents);
+					for(Node arrayComponent : arrayComponents.nodesTaggedWithAny(aliasTag).eval().nodes()){
+						arrayComponentsSet.add(arrayComponent);
+						AtlasSet<Node> arrayInstantiations = PointsToAnalysis.getAliases(arrayComponent);
+						arrayComponentInstantiationSet.addAll(arrayInstantiations);
+					}
+				}
 			}
 		}
-
 		Q arrayComponents = Common.toQ(arrayComponentsSet);
 		Q arrayComponentInstantiations = Common.toQ(arrayComponentInstantiationSet);
+		
+//		for(Node node : filteredSelection.eval().nodes()){
+//			Q aliases = Common.toQ(PointsToAnalysis.getAliases(node));
+//			Q arrayComponentAliases = aliases.nodesTaggedWithAny(XCSG.ArrayComponents);
+//			for(Node arrayComponentAlias : arrayComponentAliases.eval().nodes()){
+//				arrayComponentsSet.add(arrayComponentAlias);
+//				AtlasSet<Node> arrayInstantiations = PointsToAnalysis.getAliases(arrayComponentAlias);
+//				arrayComponentInstantiationSet.addAll(arrayInstantiations);
+//			}
+//		}
 
 		Highlighter h = new Highlighter();
 		h.highlight(arrayComponents, Color.CYAN);

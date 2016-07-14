@@ -41,29 +41,18 @@ public class PointsToArrayComponentSmartView extends FilteringAtlasSmartViewScri
 
 		AtlasSet<GraphElement> arrayComponentsSet = new AtlasHashSet<GraphElement>();
 		for(Node node : filteredSelection.eval().nodes()){
-			Q arrayInstantiationAliases = Common.toQ(PointsToAnalysis.getAliases(node)).nodesTaggedWithAny(XCSG.ArrayInstantiation);
-			for(Node arrayInstantiationAlias : arrayInstantiationAliases.eval().nodes()){
-				Q arrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents);
-				String[] arrayMemoryModelAliasTags = PointsToAnalysis.getArrayMemoryModelPointsToTags(arrayInstantiationAlias);
-				if(arrayMemoryModelAliasTags.length > 0){
-					arrayComponentsSet.addAll(arrayComponents.nodesTaggedWithAny(arrayMemoryModelAliasTags).eval().nodes());
+			for(String aliasTag : PointsToAnalysis.getAliasTags(node)){
+				// if the array memory model has an alias then this element 
+				// could be an array (even if it doesn't look like it currently)
+				if(PointsToAnalysis.isArrayMemoryModelAlias(aliasTag)){
+					// get the array component with this alias
+					Q arrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents);
+					for(Node arrayComponent : arrayComponents.nodesTaggedWithAny(aliasTag).eval().nodes()){
+						arrayComponentsSet.add(arrayComponent);
+					}
 				}
 			}
 		}
-		
-//		
-//		for(GraphElement ge : filteredSelection.eval().nodes()){
-//			for(Long address : PointsToResults.getPointsToSet(ge)){
-//				// if the array memory model has a key for the address then this element 
-//				// could be an array (even if it doesn't look like it currently)
-//				if(pointsToResults.arrayMemoryModel.containsKey(address)){
-//					// get the array component with this address
-//					GraphElement arrayComponent = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).selectNode(Constants.POINTS_TO_ARRAY_ADDRESS, address).eval().nodes().getFirst();
-//					
-//				}	
-//			}
-//		}
-//
 		Q arrayComponents = Common.toQ(arrayComponentsSet);
 		
 		// compute what to show for current steps

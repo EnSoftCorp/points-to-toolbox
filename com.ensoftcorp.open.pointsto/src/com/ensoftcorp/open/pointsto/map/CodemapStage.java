@@ -36,18 +36,21 @@ public class CodemapStage implements ToolboxIndexingStage {
 				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Enhancing graph with points-to results...");
 				
 				long numMemoryModels = GraphEnhancements.serializeArrayMemoryModels(jimplePointsTo);
-				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Attributed " + numMemoryModels + " array memory models.");
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numMemoryModels + " array memory model tags.");
+				
+				long numTaggedAliases = GraphEnhancements.serializeAliases(jimplePointsTo);
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numTaggedAliases + " aliasing tags.");
 				
 				long numArrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes().size();
 				long numRewrittenArrayComponents = GraphEnhancements.rewriteArrayComponents(jimplePointsTo);
 				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Rewrote " + numArrayComponents + " array components to " + numRewrittenArrayComponents + " array components.");
 				
 				long numInferredDFEdges = GraphEnhancements.tagInferredEdges(jimplePointsTo);
-				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Inferred " + numInferredDFEdges + " data flow edges.");
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numInferredDFEdges + " inferred data flow edge tags.");
 				
-				long numTaggedAliases = GraphEnhancements.serializeAliases(jimplePointsTo);
-				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numTaggedAliases + " aliasing tags.");
-				
+				long numInferredTypeOfEdges = GraphEnhancements.tagInferredTypeOfEdges(jimplePointsTo);
+				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numInferredTypeOfEdges + " inferred type of edge tags.");
+	
 				// throw away references we don't need anymore
 				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Disposing temporary resources...");
 				jimplePointsTo.dispose();

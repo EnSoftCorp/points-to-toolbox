@@ -11,6 +11,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.index.Index;
+import com.ensoftcorp.atlas.core.log.Log;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
@@ -34,6 +35,22 @@ public class GraphEnhancements {
 		return numInferredEdges;
 	}
 	
+	public static long tagInferredTypeOfEdges(PointsTo pointsTo){
+		long numEdgesAdded = 0;
+		Q typeOfEdges = Common.universe().edgesTaggedWithAny(XCSG.TypeOf);
+		for(Node addressedNode : pointsTo.getAddressedNodes()){
+			for(Integer address : pointsTo.getAliasAddresses(addressedNode)){
+				Node type = pointsTo.getType(address);
+				Edge runtimeTypeOfEdge = typeOfEdges.betweenStep(Common.toQ(addressedNode), Common.toQ(type)).eval().edges().getFirst();
+				if(runtimeTypeOfEdge != null){
+					runtimeTypeOfEdge.tag(PointsToAnalysis.INFERRED);
+					numEdgesAdded++;
+				}
+			}
+		}
+		return numEdgesAdded;
+	}
+	
 	public static long serializeArrayMemoryModels(PointsTo pointsTo){
 		long numMemoryModels = 0;
 		Q arrayInstantiations = Common.universe().nodesTaggedWithAny(XCSG.ArrayInstantiation);
@@ -42,7 +59,11 @@ public class GraphEnhancements {
 			for(Integer address : pointsTo.getAliasAddresses(arrayInstantiation)){
 				HashSet<Integer> arrayMemoryModel = pointsTo.getArrayMemoryModel(address);
 				for(Integer arrayMemoryModelAddress : arrayMemoryModel){
-					arrayInstantiation.tag(PointsToAnalysis.ARRAY_MEMORY_MODEL_PREFIX + arrayMemoryModelAddress);
+					if(arrayMemoryModelAddress == 0){
+						arrayInstantiation.tag(PointsToAnalysis.NULL_ARRAY_MEMORY_MODEL);
+					} else {
+						arrayInstantiation.tag(PointsToAnalysis.ARRAY_MEMORY_MODEL_PREFIX + arrayMemoryModelAddress);
+					}
 					numMemoryModels++;
 				}
 			}
@@ -117,7 +138,12 @@ public class GraphEnhancements {
 		arrayComponent.tag(XCSG.ArrayComponents);
 		arrayComponent.tag(Index.INDEX_VIEW_TAG);
 		arrayComponent.putAttr(XCSG.name, "@[" + (arrayNumber++) + "]");
-		arrayComponent.tag(PointsToAnalysis.POINTS_TO_PREFIX + address);
+		if(address == 0){
+			Log.warning("Array component " + arrayComponent.address().toAddressString() + " is a null alias.");
+			arrayComponent.tag(PointsToAnalysis.NULL_ALIAS);
+		} else {
+			arrayComponent.tag(PointsToAnalysis.ALIAS_PREFIX + address);
+		}
 		return arrayComponent;
 	}
 
@@ -131,7 +157,11 @@ public class GraphEnhancements {
 		for(Node addressedObject : addressedObjects){
 			HashSet<Integer> pointsToSet = pointsTo.getAliasAddresses(addressedObject);
 			for(Integer address : pointsToSet){
-				addressedObject.tag(PointsToAnalysis.POINTS_TO_PREFIX + address);
+				if(address == 0){
+					addressedObject.tag(PointsToAnalysis.NULL_ALIAS);
+				} else {
+					addressedObject.tag(PointsToAnalysis.ALIAS_PREFIX + address);
+				}
 				numAliasesTags++;
 			}
 		}

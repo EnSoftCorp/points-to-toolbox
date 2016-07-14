@@ -42,10 +42,10 @@
       <script
             class="com.ensoftcorp.open.pointsto.ui.smart.PointsToAliasesSmartView">
       </script>
-      <!-- broken :( NEED TO FIX
       <script
             class="com.ensoftcorp.open.pointsto.ui.smart.PointsToArrayComponentAliasesSmartView">
       </script>
+      <!-- currently debating this views usefulness because PointsToArrayComponentAliasesSmartView is a superset of the functionality
       <script
             class="com.ensoftcorp.open.pointsto.ui.smart.PointsToArrayComponentSmartView">
       </script>
