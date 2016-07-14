@@ -63,7 +63,7 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 		// by default the data flow edges are not shown until forward/backward
 		// steps are increased. Union instantiations in, for null's since they
 		// won't have a between edge
-		Q inferredDF = Common.universe().edgesTaggedWithAny(PointsToAnalysis.INFERRED);
+		Q inferredDF = Common.universe().edgesTaggedWithAny(PointsToAnalysis.INFERRED_DATA_FLOW);
 		Q completeResult = instantations.union(inferredDF.forward(instantations).intersection(inferredDF.reverse(filteredSelection)));
 		
 		// compute what to show for current steps

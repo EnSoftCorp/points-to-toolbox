@@ -2,6 +2,7 @@ package com.ensoftcorp.open.pointsto.ui.smart;
 
 import java.awt.Color;
 
+import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -38,35 +39,20 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
 		Q filteredSelection = filter(event.getSelection());
 		
-		AtlasSet<Node> arrayComponentsSet = new AtlasHashSet<Node>();
-		AtlasSet<Node> arrayComponentInstantiationSet = new AtlasHashSet<Node>();
+		AtlasSet<GraphElement> arrayComponentsSet = new AtlasHashSet<GraphElement>();
+		AtlasSet<GraphElement> arrayComponentsInstantiationSet = new AtlasHashSet<GraphElement>();
 		for(Node node : filteredSelection.eval().nodes()){
-			for(String aliasTag : PointsToAnalysis.getAliasTags(node)){
-				// if the array memory model has an alias then this element 
-				// could be an array (even if it doesn't look like it currently)
-				if(PointsToAnalysis.isArrayMemoryModelAlias(aliasTag)){
-					// get the array component with this alias
-					Q arrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents);
-					for(Node arrayComponent : arrayComponents.nodesTaggedWithAny(aliasTag).eval().nodes()){
-						arrayComponentsSet.add(arrayComponent);
-						AtlasSet<Node> arrayInstantiations = PointsToAnalysis.getAliases(arrayComponent);
-						arrayComponentInstantiationSet.addAll(arrayInstantiations);
-					}
-				}
+			Q aliases = Common.toQ(PointsToAnalysis.getAliases(node));
+			arrayComponentsSet.addAll(aliases.nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes());
+			Q aliasedArrayInstantiations = aliases.nodesTaggedWithAny(XCSG.ArrayInstantiation);
+			for(Node aliasedArrayInstantiation : aliasedArrayInstantiations.eval().nodes()){
+				Q arrayComponentAliases = Common.toQ(PointsToAnalysis.getArrayMemoryModelAliases(aliasedArrayInstantiation));
+				Q arrayComponentInstantiations = arrayComponentAliases.nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation);
+				arrayComponentsInstantiationSet.addAll(arrayComponentInstantiations.eval().nodes());
 			}
 		}
 		Q arrayComponents = Common.toQ(arrayComponentsSet);
-		Q arrayComponentInstantiations = Common.toQ(arrayComponentInstantiationSet);
-		
-//		for(Node node : filteredSelection.eval().nodes()){
-//			Q aliases = Common.toQ(PointsToAnalysis.getAliases(node));
-//			Q arrayComponentAliases = aliases.nodesTaggedWithAny(XCSG.ArrayComponents);
-//			for(Node arrayComponentAlias : arrayComponentAliases.eval().nodes()){
-//				arrayComponentsSet.add(arrayComponentAlias);
-//				AtlasSet<Node> arrayInstantiations = PointsToAnalysis.getAliases(arrayComponentAlias);
-//				arrayComponentInstantiationSet.addAll(arrayInstantiations);
-//			}
-//		}
+		Q arrayComponentInstantiations = Common.toQ(arrayComponentsInstantiationSet);
 
 		Highlighter h = new Highlighter();
 		h.highlight(arrayComponents, Color.CYAN);
@@ -78,8 +64,9 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 		// by default the data flow edges are not shown until forward/backward
 		// steps are increased. Union instantiations in, for null's since they
 		// won't have a between edge
-		Q inferredDF = Common.universe().edgesTaggedWithAny(PointsToAnalysis.INFERRED);
-		Q completeResult = arrayComponentInstantiations.union(inferredDF.forward(arrayComponentInstantiations).intersection(inferredDF.reverse(arrayComponents)));
+		Q inferredDF = Common.universe().edgesTaggedWithAny(PointsToAnalysis.INFERRED_DATA_FLOW);
+		Q between = inferredDF.forward(arrayComponentInstantiations).intersection(inferredDF.reverse(arrayComponents));
+		Q completeResult = arrayComponents.union(arrayComponentInstantiations).union(between);
 		
 		// compute what to show for current steps
 		Q f = arrayComponentInstantiations.forwardStepOn(completeResult, forward);

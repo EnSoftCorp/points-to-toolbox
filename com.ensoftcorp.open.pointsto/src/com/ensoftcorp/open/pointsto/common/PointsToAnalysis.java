@@ -56,14 +56,19 @@ public class PointsToAnalysis {
 	 * @return
 	 */
 	public static boolean isArrayMemoryModelAlias(String aliasTag){
-		if(!aliasTag.startsWith(ALIAS_PREFIX)){
+		if(aliasTag.equals(NULL_ARRAY_MEMORY_MODEL)){
+			return true;
+		} else if(aliasTag.equals(NULL_ALIAS)){
+			return false;
+		} else if(!aliasTag.startsWith(ALIAS_PREFIX)){
 			throw new IllegalArgumentException(aliasTag + " is not a valid alias tag.");
-		}
-		try {
-			Integer address = Integer.parseInt(aliasTag.replace(ALIAS_PREFIX, ""));
-			return isArrayMemoryModelAddress(address);
-		} catch (Exception e){
-			throw new IllegalArgumentException(aliasTag + " is not a valid alias tag.");
+		} else {
+			try {
+				Integer address = Integer.parseInt(aliasTag.replace(ALIAS_PREFIX, ""));
+				return isArrayMemoryModelAddress(address);
+			} catch (Exception e){
+				throw new IllegalArgumentException(aliasTag + " is not a valid alias tag.");
+			}
 		}
 	}
 	
@@ -123,15 +128,16 @@ public class PointsToAnalysis {
 	}
 	
 	/**
-	 * Applied to edges to indicate that the edge's runtime possibility was
+	 * Applied to edges to indicate that the edge's runtime data flow possibility was
 	 * verified by the points-to analysis
 	 */
-	public static final String INFERRED = "INFERRED";
+	public static final String INFERRED_DATA_FLOW = "INFERRED_DATA_FLOW";
 	
 	/**
-	 * Applied to edges inserted into the graph that denote inferred runtime times
+	 * Applied to edges to indicate that the edge's runtime type of possibility was
+	 * verified by the points-to analysis
 	 */
-	public static final String RUNTIME_TYPE_OF = "RUNTIME_TYPE_OF";
+	public static final String INFERRED_TYPE_OF = "INFERRED_TYPE_OF";
 	
 	/**
 	 * Returns aliases to the array memory model
@@ -161,7 +167,7 @@ public class PointsToAnalysis {
 				if(tag.equals(NULL_ARRAY_MEMORY_MODEL)){
 					tags.add(NULL_ALIAS);
 				} else if(tag.startsWith(ARRAY_MEMORY_MODEL_PREFIX)){
-					tags.add(ALIAS_PREFIX + tag.replace(ARRAY_MEMORY_MODEL_PREFIX, ALIAS_PREFIX));
+					tags.add(tag.replace(ARRAY_MEMORY_MODEL_PREFIX, ALIAS_PREFIX));
 				}
 			}
 		}

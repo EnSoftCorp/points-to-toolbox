@@ -25,11 +25,11 @@ import com.ensoftcorp.open.pointsto.common.PointsToAnalysis;
  */
 public class GraphEnhancements {
 	
-	public static long tagInferredEdges(PointsTo pointsTo){
+	public static long tagInferredDataFlowEdges(PointsTo pointsTo){
 		long numInferredEdges = 0;
 		// blessing interprocedural invocation data flow edges with inferred tag
 		for(Edge dfEdge : new AtlasHashSet<Edge>(pointsTo.getInferredDataFlowGraph().edges())){
-			dfEdge.tag(PointsToAnalysis.INFERRED);
+			dfEdge.tag(PointsToAnalysis.INFERRED_DATA_FLOW);
 			numInferredEdges++;
 		}
 		return numInferredEdges;
@@ -43,7 +43,7 @@ public class GraphEnhancements {
 				Node type = pointsTo.getType(address);
 				Edge runtimeTypeOfEdge = typeOfEdges.betweenStep(Common.toQ(addressedNode), Common.toQ(type)).eval().edges().getFirst();
 				if(runtimeTypeOfEdge != null){
-					runtimeTypeOfEdge.tag(PointsToAnalysis.INFERRED);
+					runtimeTypeOfEdge.tag(PointsToAnalysis.INFERRED_TYPE_OF);
 					numEdgesAdded++;
 				}
 			}
@@ -102,7 +102,7 @@ public class GraphEnhancements {
 				GraphElement arrayWriteEdge = Graph.U.createEdge(arrayWrite, arrayComponent);
 				arrayWriteEdge.tag(XCSG.InterproceduralDataFlow);
 				arrayWriteEdge.tag(Index.INDEX_VIEW_TAG);
-				arrayWriteEdge.tag(PointsToAnalysis.INFERRED);
+				arrayWriteEdge.tag(PointsToAnalysis.INFERRED_DATA_FLOW);
 				Graph.U.addEdge(arrayWriteEdge);
 			}
 		}
@@ -116,7 +116,7 @@ public class GraphEnhancements {
 				GraphElement arrayReadEdge = Graph.U.createEdge(arrayComponent, arrayRead);
 				arrayReadEdge.tag(XCSG.InterproceduralDataFlow);
 				arrayReadEdge.tag(Index.INDEX_VIEW_TAG);
-				arrayReadEdge.tag(PointsToAnalysis.INFERRED);
+				arrayReadEdge.tag(PointsToAnalysis.INFERRED_DATA_FLOW);
 				Graph.U.addEdge(arrayReadEdge);
 			}
 		}
@@ -144,7 +144,8 @@ public class GraphEnhancements {
 		} else {
 			arrayComponent.tag(PointsToAnalysis.ALIAS_PREFIX + address);
 		}
-		// need to update the temporary points-to set for the next pass
+		// need to update points to set for consistency, even though points to set
+		// for array component is only ever 1 address
 		pointsTo.addAliasAddress(arrayComponent, address);
 		return arrayComponent;
 	}

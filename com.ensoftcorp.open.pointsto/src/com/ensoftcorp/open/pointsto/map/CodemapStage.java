@@ -45,7 +45,7 @@ public class CodemapStage implements ToolboxIndexingStage {
 				long numRewrittenArrayComponents = GraphEnhancements.rewriteArrayComponents(jimplePointsTo);
 				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Rewrote " + numArrayComponents + " array components to " + numRewrittenArrayComponents + " array components.");
 				
-				long numInferredDFEdges = GraphEnhancements.tagInferredEdges(jimplePointsTo);
+				long numInferredDFEdges = GraphEnhancements.tagInferredDataFlowEdges(jimplePointsTo);
 				if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numInferredDFEdges + " inferred data flow edge tags.");
 				
 				long numInferredTypeOfEdges = GraphEnhancements.tagInferredTypeOfEdges(jimplePointsTo);
