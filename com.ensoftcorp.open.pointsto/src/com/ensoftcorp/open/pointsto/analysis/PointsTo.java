@@ -56,7 +56,7 @@ public abstract class PointsTo {
 	 * Returns the mapping of arrays to the array's components
 	 * @return
 	 */
-	public abstract HashSet<Integer> getArrayMemoryModel(Integer address);
+	public abstract HashSet<Integer> getArrayMemoryModelAliases(Integer address);
 	
 	/**
 	 * Returns the array memory model addresses
@@ -70,6 +70,18 @@ public abstract class PointsTo {
 	 * @return
 	 */
 	public abstract HashSet<Integer> getAliasAddresses(Node node);
+	
+	/**
+	 * Removes an alias address from the alias set
+	 * @param node
+	 */
+	public abstract void addAliasAddress(Node node, Integer address);
+	
+	/**
+	 * Adds an alias address to the alias set
+	 * @param node
+	 */
+	public abstract void removeAliasAddress(Node node, Integer address);
 	
 	/**
 	 * Returns the mapping of an address to its corresponding instantiation

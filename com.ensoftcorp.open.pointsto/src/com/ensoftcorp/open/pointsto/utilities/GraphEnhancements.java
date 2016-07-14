@@ -57,8 +57,8 @@ public class GraphEnhancements {
 		for(Node arrayInstantiation : arrayInstantiations.eval().nodes()){
 			// should only have one alias address on the instantiation
 			for(Integer address : pointsTo.getAliasAddresses(arrayInstantiation)){
-				HashSet<Integer> arrayMemoryModel = pointsTo.getArrayMemoryModel(address);
-				for(Integer arrayMemoryModelAddress : arrayMemoryModel){
+				HashSet<Integer> arrayMemoryModelAliases = pointsTo.getArrayMemoryModelAliases(address);
+				for(Integer arrayMemoryModelAddress : arrayMemoryModelAliases){
 					if(arrayMemoryModelAddress == 0){
 						arrayInstantiation.tag(PointsToAnalysis.NULL_ARRAY_MEMORY_MODEL);
 					} else {
@@ -144,6 +144,8 @@ public class GraphEnhancements {
 		} else {
 			arrayComponent.tag(PointsToAnalysis.ALIAS_PREFIX + address);
 		}
+		// need to update the temporary points-to set for the next pass
+		pointsTo.addAliasAddress(arrayComponent, address);
 		return arrayComponent;
 	}
 

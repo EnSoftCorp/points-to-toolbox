@@ -48,7 +48,7 @@ public class JimplePointsTo extends PointsTo {
 	 * @return 
 	 */
 	@SuppressWarnings("unchecked")
-	public static HashSet<Integer> getPointsToSet(Node node){
+	private static HashSet<Integer> getPointsToSet(Node node){
 		if(node.hasAttr(POINTS_TO_SET)){
 			return (HashSet<Integer>) node.getAttr(POINTS_TO_SET);
 		} else {
@@ -74,11 +74,23 @@ public class JimplePointsTo extends PointsTo {
 	}
 	
 	@Override
+	public void addAliasAddress(Node node, Integer address) {
+		getPointsToSet(node).add(address);
+	}
+
+	@Override
+	public void removeAliasAddress(Node node, Integer address) {
+		getPointsToSet(node).remove(address);
+	}
+	
+	@Override
 	public HashSet<Integer> getAliasAddresses(Node node) {
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
-		return getPointsToSet(node);
+		HashSet<Integer> result = new HashSet<Integer>();
+		result.addAll(getPointsToSet(node));
+		return result;
 	}
 	
 	/**
@@ -105,11 +117,13 @@ public class JimplePointsTo extends PointsTo {
 	}
 	
 	@Override
-	public HashSet<Integer> getArrayMemoryModel(Integer address) {
+	public HashSet<Integer> getArrayMemoryModelAliases(Integer address) {
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
-		return arrayMemoryModel.get(address);
+		HashSet<Integer> result = new HashSet<Integer>();
+		result.addAll(arrayMemoryModel.get(address));
+		return result;
 	}
 
 	@Override
