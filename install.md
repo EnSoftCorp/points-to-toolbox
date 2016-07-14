@@ -21,6 +21,8 @@ Follow the steps below to install the Points-to Toolbox plugin from the Eclipse 
 6. Read and accept the license agreements, then click `Finish`. If you get a security warning saying that the authenticity or validity of the software can't be established, click `OK`.
 7. When the installation completes, restart Eclipse.
 
+**Note**: For legacy Atlas 2.x updates use the "[https://ensoftcorp.github.io/points-to-toolbox/atlas2-updates/](https://ensoftcorp.github.io/points-to-toolbox/atlas2-updates/)" update site.
+
 ## Installing from Source
 If you want to install from source for bleeding edge changes, first grab a copy of the [source](https://github.com/EnSoftCorp/points-to-toolbox) repository. In the Eclipse workspace, import the `com.ensoftcorp.open.pointsto` Eclipse project located in the source repository.  Right click on the project and select `Export`.  Select `Plug-in Development` &gt; `Deployable plug-ins and fragments`.  Select the `Install into host. Repository:` radio box and click `Finish`.  Press `OK` for the notice about unsigned software.  Once Eclipse restarts the plugin will be installed and it is advisable to close or remove the `com.ensoftcorp.open.pointsto` project from the workspace.
 
