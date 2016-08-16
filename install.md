@@ -29,10 +29,13 @@ If you want to install from source for bleeding edge changes, first grab a copy 
 ## Changelog
 Note that version numbers are based off [Atlas](http://www.ensoftcorp.com/atlas/download/) version numbers.
 
+### 3.0.10
+- Bumped version number for Atlas 3.0.10 release
+
 ### 3.0.8
 - Atlas 3.x migrations
 - Major rewrites to client analysis interfaces, all results are now serialized in Atlas graph as alias tags, array memory model tags, inferred data flow edges, and inferred runtime type of edges
-- Added additional utlities for may and must alias queries
+- Added additional utilities for may and must alias queries
 - Enabled a beta Java source points-to analysis implementation
 
 ### 2.7.3
