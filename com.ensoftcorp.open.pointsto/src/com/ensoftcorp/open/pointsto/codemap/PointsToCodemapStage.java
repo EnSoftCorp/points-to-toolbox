@@ -1,10 +1,10 @@
-package com.ensoftcorp.open.pointsto.map;
+package com.ensoftcorp.open.pointsto.codemap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import com.ensoftcorp.atlas.core.indexing.providers.ToolboxIndexingStage;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
 import com.ensoftcorp.open.pointsto.analysis.JimplePointsTo;
 import com.ensoftcorp.open.pointsto.log.Log;
 import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
@@ -16,11 +16,23 @@ import com.ensoftcorp.open.pointsto.utilities.GraphEnhancements;
  * 
  * @author Ben Holland
  */
-public class PointsToCodemapStage implements ToolboxIndexingStage {
+public class PointsToCodemapStage extends PrioritizedCodemapStage {
+
+	public static final String IDENTIFIER = "POINTSTO_ANALYSIS";
+	
+	@Override
+	public String getDisplayName() {
+		return "Points-to Analysis";
+	}
 
 	@Override
-	public String displayName() {
-		return "Points-to Analysis";
+	public String getIdentifier() {
+		return IDENTIFIER;
+	}
+
+	@Override
+	public String[] getCodemapStageDependencies() {
+		return new String[]{}; // no dependencies
 	}
 
 	@Override
