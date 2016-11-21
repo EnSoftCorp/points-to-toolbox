@@ -61,7 +61,8 @@
       <page
             class="com.ensoftcorp.open.pointsto.ui.PointsToPreferencesPage"
             id="com.ensoftcorp.open.pointsto.ui.preferences"
-            name="Points-To Analysis">
+            name="Points-To Analysis"
+            category="com.ensoftcorp.open.commons.ui.toolbox">
       </page>
    </extension>
 
