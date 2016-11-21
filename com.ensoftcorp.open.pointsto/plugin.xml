@@ -32,7 +32,7 @@
    <extension
          point="com.ensoftcorp.atlas.core.ToolboxExtensionPoint">
       <indexer
-            class="com.ensoftcorp.open.pointsto.map.CodemapStage">
+            class="com.ensoftcorp.open.pointsto.map.PointsToCodemapStage">
       </indexer>
    </extension>
    

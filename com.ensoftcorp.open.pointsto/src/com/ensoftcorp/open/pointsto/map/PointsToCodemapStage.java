@@ -16,7 +16,7 @@ import com.ensoftcorp.open.pointsto.utilities.GraphEnhancements;
  * 
  * @author Ben Holland
  */
-public class CodemapStage implements ToolboxIndexingStage {
+public class PointsToCodemapStage implements ToolboxIndexingStage {
 
 	@Override
 	public String displayName() {
