@@ -18,7 +18,7 @@ import com.ensoftcorp.open.pointsto.utilities.GraphEnhancements;
  */
 public class PointsToCodemapStage extends PrioritizedCodemapStage {
 
-	public static final String IDENTIFIER = "POINTSTO_ANALYSIS";
+	public static final String IDENTIFIER = "com.ensoftcorp.open.pointsto";
 	
 	@Override
 	public String getDisplayName() {
