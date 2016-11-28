@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.pointsto.analysis;
 
+import java.util.Collection;
 import java.util.HashSet;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -20,6 +21,7 @@ import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.java.core.script.CommonQueries;
 import com.ensoftcorp.open.pointsto.log.Log;
+import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
 import com.ensoftcorp.open.pointsto.utilities.AddressFactory;
 import com.ensoftcorp.open.pointsto.utilities.AnalysisUtilities;
 import com.ensoftcorp.open.pointsto.utilities.SubtypeCache;
@@ -218,18 +220,24 @@ public class JimplePointsTo extends PointsTo {
 		addressToInstantiation.put(NULL_TYPE_ADDRESS, nullType);
 		addressToType.put(NULL_TYPE_ADDRESS, nullType);
 		
-		// TODO: consider primitives and String literals
-		
 		// TODO: consider external root set objects
 		
+		// considers primitives, String literals, and enum constants
+		// note: this set also includes null, but that case is explicitly handled in address creation
+		//       so all null literals are represented with a single address id to save on space
+		Q specialInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Java.EnumConstant, XCSG.Literal);
+		
 		// create unique addresses for types of new statements and array instantiations
-		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation);
+		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).union(specialInstantiations);
 		for(Node newRef : newRefs.eval().nodes()){
 			Node statedType = AnalysisUtilities.statedType(newRef);
 			if(statedType != null){
 				// create a new address for the reference and add a  
 				// mapping from the address to the state type
-				Integer address = addressFactory.getNewAddress();
+				Integer address = NULL_TYPE_ADDRESS;
+				if(!statedType.equals(nullType)){
+					address = addressFactory.getNewAddress();
+				}
 				getPointsToSet(newRef).add(address);
 				addressToInstantiation.put(address, newRef);
 				addressToType.put(address, statedType);
@@ -312,6 +320,12 @@ public class JimplePointsTo extends PointsTo {
 		dfNodes = new AtlasHashSet<GraphElement>();
 		dfNodes.addAll(conservativeDF.eval().nodes());
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
+		
+		// model primitive valueOf dataflow method summaries
+		if(PointsToPreferences.isModelPrimitiveInstantiationDataFlowsEnabled()){
+			dfEdges.addAll(modelPrimitiveInstantiationDataFlows());
+			dfGraph = new UncheckedGraph(dfNodes, dfEdges);
+		}
 		
 		// create graphs and sets for resolving dynamic dispatches
 		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
@@ -431,6 +445,46 @@ public class JimplePointsTo extends PointsTo {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Creates local data flow edges from valueOf arguments to the master return for primitive types
+	 * @return
+	 */
+	private AtlasHashSet<Edge> modelPrimitiveInstantiationDataFlows() {
+		Log.info("Adding model summaries for primitive type instantiations...");
+		AtlasHashSet<Edge> summaryEdges = new AtlasHashSet<Edge>();
+		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Byte", "valueOf")));
+		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Character", "valueOf")));
+		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Short", "valueOf")));
+		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Integer", "valueOf")));
+		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Long", "valueOf")));
+		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Float", "valueOf")));
+		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Double", "valueOf")));
+		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Boolean", "valueOf")));
+		return summaryEdges;
+	}
+
+	/**
+	 * Creates a local data flow edge between each parameter and the master return of the given methods
+	 * @param method
+	 * @return
+	 */
+	private AtlasHashSet<Edge> createDataFlowSummaryEdges(Q methods) {
+		AtlasHashSet<Edge> summaryEdges = new AtlasHashSet<Edge>();
+		for(Node method : methods.eval().nodes()){
+			Q parameters = Common.toQ(method).contained().nodesTaggedWithAny(XCSG.Parameter);
+			Q returnValues = Common.toQ(method).contained().nodesTaggedWithAny(XCSG.ReturnValue);
+			for(Node parameter : parameters.eval().nodes()){
+				for(Node returnValue : returnValues.eval().nodes()){
+					Edge summaryEdge = Graph.U.createEdge(parameter, returnValue);
+					summaryEdge.tag(XCSG.LocalDataFlow);
+					summaryEdge.tag("PRIMITIVE_DATA_FLOW_SUMMARY");
+					summaryEdges.add(summaryEdge);
+				}
+			}
+		}
+		return summaryEdges;
 	}
 	
 	/**

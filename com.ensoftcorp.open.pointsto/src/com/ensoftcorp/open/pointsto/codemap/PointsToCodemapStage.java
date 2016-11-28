@@ -40,7 +40,7 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 		try {
 			// TODO: when a Java source specific implementation is available, run it instead of jimple version
 			// the jimple version produces mostly correct results, but misses a few source only edge cases
-			if(PointsToPreferences.isJimplePointsToAnalysisEnabled() || PointsToPreferences.isJavaPointsToAnalysisEnabled()){
+			if(PointsToPreferences.isPointsToAnalysisEnabled()){
 				JimplePointsTo jimplePointsTo = new JimplePointsTo();
 				jimplePointsTo.run();
 				

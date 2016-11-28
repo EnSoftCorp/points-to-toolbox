@@ -11,11 +11,45 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	private static boolean initialized = false;
 	
 	/**
-	 * Returns true if any points-to analysis is enabled
+	 * Enable/disable points-to analysis
+	 */
+	public static final String RUN_POINTS_TO_ANALYSIS = "RUN_POINTS_TO_ANALYSIS";
+	public static final Boolean RUN_POINTS_TO_ANALYSIS_DEFAULT = false;
+	private static boolean runPointsToAnalysisValue = RUN_POINTS_TO_ANALYSIS_DEFAULT;
+	
+	public static boolean isPointsToAnalysisEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return runPointsToAnalysisValue;
+	}
+	
+	public static final String POINTS_TO_ANALYSIS_MODE = "POINTS_TO_ANALYSIS_MODE";
+	public static final String JIMPLE_POINTS_TO_ANALYSIS_MODE = "JIMPLE_POINTS_TO_ANALYSIS_MODE";
+	public static final String JAVA_POINTS_TO_ANALYSIS_MODE = "JAVA_POINTS_TO_ANALYSIS_MODE";
+	public static final String POINTS_TO_ANALYSIS_MODE_DEFAULT = JAVA_POINTS_TO_ANALYSIS_MODE;
+	private static String analysisModeValue = POINTS_TO_ANALYSIS_MODE_DEFAULT;
+	
+	/**
+	 * Returns true if java points-to analysis is enabled
 	 * @return
 	 */
-	public static boolean isPointsToAnalysisEnabled(){
-		return isJavaPointsToAnalysisEnabled() || isJimplePointsToAnalysisEnabled();
+	public static boolean isPointsToAnalysisJavaModeEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return analysisModeValue.equals(JAVA_POINTS_TO_ANALYSIS_MODE);
+	}
+	
+	/**
+	 * Returns true if jimple points-to analysis is enabled
+	 * @return
+	 */
+	public static boolean isPointsToAnalysisJimpleModeEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return analysisModeValue.equals(JIMPLE_POINTS_TO_ANALYSIS_MODE);
 	}
 	
 	/**
@@ -33,39 +67,26 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	}
 	
 	/**
-	 * Enable/disable Jimple points-to analysis
+	 * Enable/disable modeling JDK data flows of primitive instantiations
 	 */
-	public static final String JIMPLE_POINTS_TO_ANALYSIS = "JIMPLE_POINTS_TO_ANALYSIS";
-	public static final Boolean JIMPLE_POINTS_TO_ANALYSIS_DEFAULT = false;
-	private static boolean jimplePointsToAnalysisValue = JIMPLE_POINTS_TO_ANALYSIS_DEFAULT;
+	public static final String MODEL_PRIMITIVE_INSTANTIATION_DATAFLOWS = "MODEL_PRIMITIVE_INSTANTIATION_DATAFLOWS";
+	public static final Boolean MODEL_PRIMITIVE_INSTANTIATION_DATAFLOWS_DEFAULT = true;
+	private static boolean modelPrimitiveInstantiationDataFlowsValue = MODEL_PRIMITIVE_INSTANTIATION_DATAFLOWS_DEFAULT;
 	
-	public static boolean isJimplePointsToAnalysisEnabled(){
+	public static boolean isModelPrimitiveInstantiationDataFlowsEnabled(){
 		if(!initialized){
 			loadPreferences();
 		}
-		return jimplePointsToAnalysisValue;
-	}
-	
-	/**
-	 * Enable/disable Java source points-to analysis
-	 */
-	public static final String JAVA_POINTS_TO_ANALYSIS = "JAVA_POINTS_TO_ANALYSIS";
-	public static final Boolean JAVA_POINTS_TO_ANALYSIS_DEFAULT = false;
-	private static boolean javaPointsToAnalysisValue = JAVA_POINTS_TO_ANALYSIS_DEFAULT;
-	
-	public static boolean isJavaPointsToAnalysisEnabled(){
-		if(!initialized){
-			loadPreferences();
-		}
-		return javaPointsToAnalysisValue;
+		return modelPrimitiveInstantiationDataFlowsValue;
 	}
 	
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
+		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
 		preferences.setDefault(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
-		preferences.setDefault(JIMPLE_POINTS_TO_ANALYSIS, JIMPLE_POINTS_TO_ANALYSIS_DEFAULT);
-		preferences.setDefault(JAVA_POINTS_TO_ANALYSIS, JAVA_POINTS_TO_ANALYSIS_DEFAULT);
+		preferences.setDefault(MODEL_PRIMITIVE_INSTANTIATION_DATAFLOWS, MODEL_PRIMITIVE_INSTANTIATION_DATAFLOWS_DEFAULT);
 	}
 	
 	/**
@@ -74,9 +95,10 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static void loadPreferences() {
 		try {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+			runPointsToAnalysisValue = preferences.getBoolean(RUN_POINTS_TO_ANALYSIS);
+			analysisModeValue = preferences.getString(POINTS_TO_ANALYSIS_MODE);		
 			generalLoggingValue = preferences.getBoolean(GENERAL_LOGGING);
-			jimplePointsToAnalysisValue = preferences.getBoolean(JIMPLE_POINTS_TO_ANALYSIS);
-			javaPointsToAnalysisValue = preferences.getBoolean(JAVA_POINTS_TO_ANALYSIS);
+			modelPrimitiveInstantiationDataFlowsValue = preferences.getBoolean(MODEL_PRIMITIVE_INSTANTIATION_DATAFLOWS);
 		} catch (Exception e){
 			Log.warning("Error accessing points-to analysis preferences, using defaults...", e);
 		}
