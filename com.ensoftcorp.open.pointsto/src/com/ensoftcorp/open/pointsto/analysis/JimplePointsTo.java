@@ -415,8 +415,15 @@ public class JimplePointsTo extends PointsTo {
 						// to the frontier
 						for(Node arrayRead : AnalysisUtilities.getArrayReadAccessesForArrayReference(to)){
 							for(Integer arrayReferenceAddress : getPointsToSet(to)){
-								if(getPointsToSet(arrayRead).addAll(arrayMemoryModel.get(arrayReferenceAddress))){
-									frontier.add(arrayRead);
+								try {
+									if(getPointsToSet(arrayRead).addAll(arrayMemoryModel.get(arrayReferenceAddress))){
+										frontier.add(arrayRead);
+									}
+								} catch (Exception e){
+									// TODO: this case is known to occur when a reference is casted to an array type
+									// there should be a better way to deal with this in place of skipping it and moving on
+									// also skipping this case will likely cause a null alias warning later
+									Log.warning("Points-to set does not exist for array read: " + arrayRead.address().toAddressString());
 								}
 							}
 						}
