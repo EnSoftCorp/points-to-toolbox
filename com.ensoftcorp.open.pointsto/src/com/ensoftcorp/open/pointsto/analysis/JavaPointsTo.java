@@ -31,16 +31,16 @@ import com.ensoftcorp.open.pointsto.utilities.frontier.Frontier;
 import net.ontopia.utils.CompactHashMap;
 
 /**
- * A fixed point points-to analysis for Jimple
+ * A fixed point points-to analysis for Java
  * 
  * @author Ben Holland
  */
-public class JimplePointsTo extends PointsTo {
+public class JavaPointsTo extends PointsTo {
 
 	/**
 	 * Attribute key name for node points-to sets
 	 */
-	private static final String POINTS_TO_SET = "jimple-points-to-set";
+	private static final String POINTS_TO_SET = "java-points-to-set";
 	
 	/**
 	 * Gets or creates the points to set for a graph element.
@@ -222,15 +222,16 @@ public class JimplePointsTo extends PointsTo {
 		
 		// TODO: consider external root set objects
 		
-		// considers primitives, String literals
+		// TODO: consider for each element types
+		
+		// considers primitives, String literals, and enum constants
 		// note: this set also includes null, but that case is explicitly handled in address creation
 		//       so all null literals are represented with a single address id to save on space
-		Q literalInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Literal);
-		
-		// note: enum constants are instantiated in jimple in the <clinit> method, but in source it is implied
+		// note: in source the instantiation for the enum constant is implied
+		Q specialInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Java.EnumConstant, XCSG.Literal);
 		
 		// create unique addresses for types of new statements and array instantiations
-		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).union(literalInstantiations);
+		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).union(specialInstantiations);
 		for(Node newRef : newRefs.eval().nodes()){
 			Node statedType = AnalysisUtilities.statedType(newRef);
 			if(statedType != null){
@@ -284,7 +285,7 @@ public class JimplePointsTo extends PointsTo {
 
 	/**
 	 * This methods runs the fixed point points-to analysis algorithm for
-	 * Jimple.
+	 * Java.
 	 * 
 	 * First the frontier worklist is seeded with unique addresses of root
 	 * instantiations then that information is iteratively propagate until a

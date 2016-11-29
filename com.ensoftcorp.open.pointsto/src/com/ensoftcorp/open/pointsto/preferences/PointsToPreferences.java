@@ -34,7 +34,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	 * Returns true if java points-to analysis is enabled
 	 * @return
 	 */
-	public static boolean isPointsToAnalysisJavaModeEnabled(){
+	public static boolean isJavaPointsToAnalysisModeEnabled(){
 		if(!initialized){
 			loadPreferences();
 		}
@@ -45,7 +45,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	 * Returns true if jimple points-to analysis is enabled
 	 * @return
 	 */
-	public static boolean isPointsToAnalysisJimpleModeEnabled(){
+	public static boolean isJimplePointsToAnalysisModeEnabled(){
 		if(!initialized){
 			loadPreferences();
 		}
