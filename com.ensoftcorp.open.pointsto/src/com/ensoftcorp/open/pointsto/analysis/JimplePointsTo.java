@@ -19,7 +19,7 @@ import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.java.core.script.CommonQueries;
-import com.ensoftcorp.open.java.commons.analysis.Primitives;
+import com.ensoftcorp.open.java.commons.analysis.PrimitiveAnalysis;
 import com.ensoftcorp.open.pointsto.log.Log;
 import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
 import com.ensoftcorp.open.pointsto.utilities.AddressFactory;
@@ -509,7 +509,7 @@ public class JimplePointsTo extends PointsTo {
 			// if the from type is compatible with the compatible to type set, add it
 			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
-				if(addressType.taggedWith(XCSG.Primitive) && Primitives.isBoxablePrimitiveType(addressType)){
+				if(addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
 					// primitives may get autoboxed and would otherwise not match subtypes
 					toReceivedNewAddresses |= toAddresses.add(fromAddress);
 				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
@@ -579,7 +579,7 @@ public class JimplePointsTo extends PointsTo {
 			// if the from type is compatible with the compatible to type set, add it
 			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
-				if(addressType.taggedWith(XCSG.Primitive) && Primitives.isBoxablePrimitiveType(addressType)){
+				if(addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
 					// primitives may get autoboxed and would otherwise not match subtypes
 					readReceivedNewAddresses |= toAddresses.add(fromAddress);
 				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
