@@ -225,12 +225,13 @@ public class JimplePointsTo extends PointsTo {
 		// considers primitives, String literals
 		// note: this set also includes null, but that case is explicitly handled in address creation
 		//       so all null literals are represented with a single address id to save on space
-		Q literalInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Literal);
+		// disabled because not really that useful and really expensive....
+//		Q literalInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Literal);
 		
 		// note: enum constants are instantiated in jimple in the <clinit> method, but in source it is implied
 		
 		// create unique addresses for types of new statements and array instantiations
-		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).union(literalInstantiations);
+		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation); //.union(literalInstantiations);
 		for(Node newRef : newRefs.eval().nodes()){
 			Node statedType = AnalysisUtilities.statedType(newRef);
 			if(statedType != null){

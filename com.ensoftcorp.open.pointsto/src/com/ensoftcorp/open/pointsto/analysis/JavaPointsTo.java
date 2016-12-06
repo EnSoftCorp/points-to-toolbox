@@ -228,7 +228,10 @@ public class JavaPointsTo extends PointsTo {
 		// note: this set also includes null, but that case is explicitly handled in address creation
 		//       so all null literals are represented with a single address id to save on space
 		// note: in source the instantiation for the enum constant is implied
-		Q specialInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Java.EnumConstant, XCSG.Literal);
+		Q specialInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Java.EnumConstant);
+		
+		// very expensive, and not really needed...
+//		specialInstantiations = specialInstantiations.union(Common.universe().nodesTaggedWithAny(XCSG.Literal));
 		
 		// create unique addresses for types of new statements and array instantiations
 		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).union(specialInstantiations);
