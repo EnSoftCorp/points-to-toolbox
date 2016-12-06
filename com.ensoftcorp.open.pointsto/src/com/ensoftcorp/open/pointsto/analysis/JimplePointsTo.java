@@ -19,7 +19,7 @@ import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.java.core.script.CommonQueries;
-import com.ensoftcorp.open.java.commons.analysis.Primitives;
+import com.ensoftcorp.open.java.commons.analysis.PrimitiveAnalysis;
 import com.ensoftcorp.open.pointsto.log.Log;
 import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
 import com.ensoftcorp.open.pointsto.utilities.AddressFactory;
@@ -509,7 +509,7 @@ public class JimplePointsTo extends PointsTo {
 			// if the from type is compatible with the compatible to type set, add it
 			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
-				if(addressType.taggedWith(XCSG.Primitive) && Primitives.isBoxablePrimitiveType(addressType)){
+				if(addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
 					// primitives may get autoboxed and would otherwise not match subtypes
 					toReceivedNewAddresses |= toAddresses.add(fromAddress);
 				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
@@ -533,30 +533,34 @@ public class JimplePointsTo extends PointsTo {
 	 * @param arrayWrite
 	 */
 	private void updateArrayMemoryModels(Node arrayWrite) {
-		// for each REFW corresponding to the AW
-		for(Node arrayWriteReference : AnalysisUtilities.getArrayReferencesForArrayAccess(arrayWrite)){
-			// for each REFW address
-			for(Integer arrayWriteReferenceAddress : getPointsToSet(arrayWriteReference)){
-				// add the AW addresses to the the array memory values set for the array REFW address
-				if(arrayMemoryModel.get(arrayWriteReferenceAddress).addAll(getPointsToSet(arrayWrite))){
-					// if new addresses were added to the array, propagate them to the corresponding reads
-					Q allArrayReads = Common.universe().nodesTaggedWithAny(XCSG.ArrayRead);
-					Q allArrayReadReferences = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor).predecessors(allArrayReads);
-					for(Node arrayReadReference : allArrayReadReferences.eval().nodes()){
-						HashSet<Integer> arrayReadReferenceAddresses = getPointsToSet(arrayReadReference);
-						if(arrayReadReferenceAddresses.contains(arrayWriteReferenceAddress)){
-							// transfer addresses from AW to each AR corresponding to the REFR with a matching address
-							AtlasSet<Node> arrayReads = AnalysisUtilities.getArrayReadAccessesForArrayReference(arrayReadReference);
-							for(Node arrayRead : arrayReads){
-								if(transferTypeCompatibleAddressesFromArrayMemoryModel(arrayWriteReferenceAddress, arrayRead)){
-									// if we transfered new addresses add the AR to the frontier
-									frontier.add(arrayRead);
+		try {
+			// for each REFW corresponding to the AW
+			for(Node arrayWriteReference : AnalysisUtilities.getArrayReferencesForArrayAccess(arrayWrite)){
+				// for each REFW address
+				for(Integer arrayWriteReferenceAddress : getPointsToSet(arrayWriteReference)){
+					// add the AW addresses to the the array memory values set for the array REFW address
+					if(arrayMemoryModel.get(arrayWriteReferenceAddress).addAll(getPointsToSet(arrayWrite))){
+						// if new addresses were added to the array, propagate them to the corresponding reads
+						Q allArrayReads = Common.universe().nodesTaggedWithAny(XCSG.ArrayRead);
+						Q allArrayReadReferences = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor).predecessors(allArrayReads);
+						for(Node arrayReadReference : allArrayReadReferences.eval().nodes()){
+							HashSet<Integer> arrayReadReferenceAddresses = getPointsToSet(arrayReadReference);
+							if(arrayReadReferenceAddresses.contains(arrayWriteReferenceAddress)){
+								// transfer addresses from AW to each AR corresponding to the REFR with a matching address
+								AtlasSet<Node> arrayReads = AnalysisUtilities.getArrayReadAccessesForArrayReference(arrayReadReference);
+								for(Node arrayRead : arrayReads){
+									if(transferTypeCompatibleAddressesFromArrayMemoryModel(arrayWriteReferenceAddress, arrayRead)){
+										// if we transfered new addresses add the AR to the frontier
+										frontier.add(arrayRead);
+									}
 								}
 							}
 						}
 					}
 				}
 			}
+		} catch (NullPointerException e){
+			// TODO: aliases which propagated through casts are throwing off the array memory model logic
 		}
 	}
 	
@@ -579,7 +583,7 @@ public class JimplePointsTo extends PointsTo {
 			// if the from type is compatible with the compatible to type set, add it
 			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
-				if(addressType.taggedWith(XCSG.Primitive) && Primitives.isBoxablePrimitiveType(addressType)){
+				if(addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
 					// primitives may get autoboxed and would otherwise not match subtypes
 					readReceivedNewAddresses |= toAddresses.add(fromAddress);
 				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
@@ -593,4 +597,3 @@ public class JimplePointsTo extends PointsTo {
 	}
 	
 }
-
