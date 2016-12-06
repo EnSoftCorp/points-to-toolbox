@@ -38,12 +38,13 @@ public abstract class PointsTo {
 		if(hasRun){
 			return 0;
 		} else {
-			Long start = System.currentTimeMillis();
+			long start = System.currentTimeMillis();
 			Log.info("Starting " + getClass().getSimpleName() + " points-to analysis");
 			runAnalysis();
-			Log.info("Finished " + getClass().getSimpleName() + " points-to analysis");
+			long time = System.currentTimeMillis() - start;
+			Log.info("Finished " + getClass().getSimpleName() + " points-to analysis in " + time + "ms");
 			hasRun = true;
-			return System.currentTimeMillis() - start;
+			return time;
 		}
 	}
 	
