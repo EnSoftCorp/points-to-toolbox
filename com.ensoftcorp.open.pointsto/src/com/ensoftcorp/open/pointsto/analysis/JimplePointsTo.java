@@ -222,16 +222,13 @@ public class JimplePointsTo extends PointsTo {
 		
 		// TODO: consider external root set objects
 		
-		// considers primitives, String literals
-		// note: this set also includes null, but that case is explicitly handled in address creation
-		//       so all null literals are represented with a single address id to save on space
-		// disabled because not really that useful and really expensive....
-//		Q literalInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Literal);
-		
 		// note: enum constants are instantiated in jimple in the <clinit> method, but in source it is implied
-		
 		// create unique addresses for types of new statements and array instantiations
-		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation); //.union(literalInstantiations);
+		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation);
+		if(PointsToPreferences.isTrackPrimitivesEnabled()){
+			Q literalInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Literal);
+			newRefs = newRefs.union(literalInstantiations);
+		}
 		for(Node newRef : newRefs.eval().nodes()){
 			Node statedType = AnalysisUtilities.statedType(newRef);
 			if(statedType != null){
@@ -325,7 +322,7 @@ public class JimplePointsTo extends PointsTo {
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		
 		// model primitive valueOf dataflow method summaries
-		if(PointsToPreferences.isModelPrimitiveInstantiationDataFlowsEnabled()){
+		if(PointsToPreferences.isTrackPrimitivesEnabled()){
 			dfEdges.addAll(modelPrimitiveInstantiationDataFlows());
 			dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		}
@@ -510,10 +507,7 @@ public class JimplePointsTo extends PointsTo {
 			// if the from type is compatible with the compatible to type set, add it
 			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
-				if(addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
-					// primitives may get autoboxed and would otherwise not match subtypes
-					toReceivedNewAddresses |= toAddresses.add(fromAddress);
-				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+				if (subtypes.isSubtypeOf(addressType, toStatedType)) {
 					toReceivedNewAddresses |= toAddresses.add(fromAddress);
 				}
 			}
@@ -584,10 +578,7 @@ public class JimplePointsTo extends PointsTo {
 			// if the from type is compatible with the compatible to type set, add it
 			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
-				if(addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
-					// primitives may get autoboxed and would otherwise not match subtypes
-					readReceivedNewAddresses |= toAddresses.add(fromAddress);
-				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+				if (subtypes.isSubtypeOf(addressType, toStatedType)) {
 					readReceivedNewAddresses |= toAddresses.add(fromAddress);
 				}
 			}

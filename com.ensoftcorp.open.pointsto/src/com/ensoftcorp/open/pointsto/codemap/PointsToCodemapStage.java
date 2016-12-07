@@ -51,28 +51,37 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 				}
 				
 				// make some graph enhancements
-				if(pointsToAnalysis != null){
-					if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Enhancing graph with points-to results...");
+				if(pointsToAnalysis != null){					
+					if(PointsToPreferences.isTagAliasesEnabled()){
+						long numMemoryModels = GraphEnhancements.serializeArrayMemoryModels(pointsToAnalysis);
+						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numMemoryModels + " array memory model tags.");
+						
+						long numTaggedAliases = GraphEnhancements.serializeAliases(pointsToAnalysis);
+						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numTaggedAliases + " aliasing tags.");
+					}
 					
-					long numMemoryModels = GraphEnhancements.serializeArrayMemoryModels(pointsToAnalysis);
-					if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numMemoryModels + " array memory model tags.");
+					if(PointsToPreferences.isRewriteArrayComponentsEnabled()){
+						long numArrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes().size();
+						long numRewrittenArrayComponents = GraphEnhancements.rewriteArrayComponents(pointsToAnalysis);
+						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Rewrote " + numArrayComponents + " array components to " + numRewrittenArrayComponents + " array components.");
+						
+					}
 					
-					long numTaggedAliases = GraphEnhancements.serializeAliases(pointsToAnalysis);
-					if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numTaggedAliases + " aliasing tags.");
+					if(PointsToPreferences.isTagInferredDataflowsEnabled()){
+						long numInferredDFEdges = GraphEnhancements.tagInferredDataFlowEdges(pointsToAnalysis);
+						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numInferredDFEdges + " inferred data flow edge tags.");
+					}
 					
-					long numArrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes().size();
-					long numRewrittenArrayComponents = GraphEnhancements.rewriteArrayComponents(pointsToAnalysis);
-					if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Rewrote " + numArrayComponents + " array components to " + numRewrittenArrayComponents + " array components.");
+					if(PointsToPreferences.isTagRuntimeTypesEnabled()){
+						long numInferredTypeOfEdges = GraphEnhancements.tagInferredTypeOfEdges(pointsToAnalysis);
+						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numInferredTypeOfEdges + " inferred type of edge tags.");
+					}
 					
-					long numInferredDFEdges = GraphEnhancements.tagInferredDataFlowEdges(pointsToAnalysis);
-					if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numInferredDFEdges + " inferred data flow edge tags.");
-					
-					long numInferredTypeOfEdges = GraphEnhancements.tagInferredTypeOfEdges(pointsToAnalysis);
-					if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numInferredTypeOfEdges + " inferred type of edge tags.");
-	
-					// throw away references we don't need anymore
-					if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Disposing temporary resources...");
-					pointsToAnalysis.dispose();
+					if(PointsToPreferences.isDisposeResourcesEnabled()){
+						// throw away references we don't need anymore
+						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Disposing temporary resources...");
+						pointsToAnalysis.dispose();
+					}
 				} else {
 					throw new IllegalArgumentException("Points-to analysis was enabled with an invalid analysis mode.");
 				}

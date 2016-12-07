@@ -231,7 +231,9 @@ public class JavaPointsTo extends PointsTo {
 		Q specialInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Java.EnumConstant);
 		
 		// very expensive, and not really needed...
-//		specialInstantiations = specialInstantiations.union(Common.universe().nodesTaggedWithAny(XCSG.Literal));
+		if(PointsToPreferences.isTrackPrimitivesEnabled()){
+			specialInstantiations = specialInstantiations.union(Common.universe().nodesTaggedWithAny(XCSG.Literal));
+		}
 		
 		// create unique addresses for types of new statements and array instantiations
 		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).union(specialInstantiations);
@@ -326,12 +328,6 @@ public class JavaPointsTo extends PointsTo {
 		dfNodes = new AtlasHashSet<GraphElement>();
 		dfNodes.addAll(conservativeDF.eval().nodes());
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
-		
-		// model primitive valueOf dataflow method summaries
-		if(PointsToPreferences.isModelPrimitiveInstantiationDataFlowsEnabled()){
-			dfEdges.addAll(modelPrimitiveInstantiationDataFlows());
-			dfGraph = new UncheckedGraph(dfNodes, dfEdges);
-		}
 		
 		// create graphs and sets for resolving dynamic dispatches
 		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
@@ -513,7 +509,7 @@ public class JavaPointsTo extends PointsTo {
 			// if the from type is compatible with the compatible to type set, add it
 			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
-				if(addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
+				if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
 					// primitives may get autoboxed and would otherwise not match subtypes
 					toReceivedNewAddresses |= toAddresses.add(fromAddress);
 				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
@@ -587,7 +583,7 @@ public class JavaPointsTo extends PointsTo {
 			// if the from type is compatible with the compatible to type set, add it
 			for(Integer fromAddress : fromAddresses){
 				Node addressType = addressToType.get(fromAddress);
-				if(addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
+				if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
 					// primitives may get autoboxed and would otherwise not match subtypes
 					readReceivedNewAddresses |= toAddresses.add(fromAddress);
 				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {

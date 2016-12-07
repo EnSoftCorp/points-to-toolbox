@@ -43,7 +43,7 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 		// as determined by the points-to analysis
 		AtlasSet<Node> instantiationSet = new AtlasHashSet<Node>();
 		for(Node node : filteredSelection.eval().nodes()){
-			Q aliases = Common.toQ(PointsToAnalysis.getAliases(node));
+			Q aliases = PointsToAnalysis.getAliases(node);
 			AtlasSet<Node> instantiations = aliases.nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).eval().nodes();
 			if(!instantiations.isEmpty()){
 				instantiationSet.addAll(instantiations);

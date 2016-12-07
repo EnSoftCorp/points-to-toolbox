@@ -202,13 +202,13 @@ public class PointsToAnalysis {
 	 * @param node
 	 * @return
 	 */
-	public static AtlasSet<Node> getAliases(Node node){
+	public static Q getAliases(Node node){
 		String[] tags = getAliasTags(node);
 		if(tags.length == 0){
-			return new AtlasHashSet<Node>();
+			return Common.empty();
 		} else {
 			Q aliases = Common.universe().nodesTaggedWithAny(tags);
-			return new AtlasHashSet<Node>(aliases.eval().nodes());
+			return aliases;
 		}
 	}
 	

@@ -42,7 +42,7 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 		AtlasSet<GraphElement> arrayComponentsSet = new AtlasHashSet<GraphElement>();
 		AtlasSet<GraphElement> arrayComponentsInstantiationSet = new AtlasHashSet<GraphElement>();
 		for(Node node : filteredSelection.eval().nodes()){
-			Q aliases = Common.toQ(PointsToAnalysis.getAliases(node));
+			Q aliases = PointsToAnalysis.getAliases(node);
 			arrayComponentsSet.addAll(aliases.nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes());
 			Q aliasedArrayInstantiations = aliases.nodesTaggedWithAny(XCSG.ArrayInstantiation);
 			for(Node aliasedArrayInstantiation : aliasedArrayInstantiations.eval().nodes()){
