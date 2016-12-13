@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="com.ensoftcorp.open.pointsto"
+      id="com.ensoftcorp.open.pointsto.feature.group"
       label="Points-to Toolbox"
       version="3.0.10.qualifier"
       provider-name="Ensoft Corp.">
