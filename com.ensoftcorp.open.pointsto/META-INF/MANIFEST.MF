@@ -2,14 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Points-to Toolbox
 Bundle-SymbolicName: com.ensoftcorp.open.pointsto;singleton:=true
-Bundle-Version: 3.0.12.qualifier
+Bundle-Version: 3.0.13.qualifier
 Bundle-Vendor: EnSoft Corp.
 Require-Bundle: 
  org.eclipse.debug.ui,
  net.ontopia.utils;bundle-version="5.2.2",
- com.ensoftcorp.open.commons;bundle-version="3.0.12",
- com.ensoftcorp.open.java.commons;bundle-version="3.0.12",
- com.ensoftcorp.open.jimple.commons;bundle-version="3.0.12"
+ com.ensoftcorp.open.commons;bundle-version="3.0.13",
+ com.ensoftcorp.open.java.commons;bundle-version="3.0.13",
+ com.ensoftcorp.open.jimple.commons;bundle-version="3.0.13"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .

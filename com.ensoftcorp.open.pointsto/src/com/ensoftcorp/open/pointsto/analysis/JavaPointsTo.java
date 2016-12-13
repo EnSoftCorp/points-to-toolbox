@@ -450,46 +450,6 @@ public class JavaPointsTo extends PointsTo {
 	}
 	
 	/**
-	 * Creates local data flow edges from valueOf arguments to the master return for primitive types
-	 * @return
-	 */
-	private AtlasHashSet<Edge> modelPrimitiveInstantiationDataFlows() {
-		Log.info("Adding model summaries for primitive type instantiations...");
-		AtlasHashSet<Edge> summaryEdges = new AtlasHashSet<Edge>();
-		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Byte", "valueOf")));
-		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Character", "valueOf")));
-		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Short", "valueOf")));
-		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Integer", "valueOf")));
-		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Long", "valueOf")));
-		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Float", "valueOf")));
-		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Double", "valueOf")));
-		summaryEdges.addAll(createDataFlowSummaryEdges(Common.methodSelect("java.lang", "Boolean", "valueOf")));
-		return summaryEdges;
-	}
-
-	/**
-	 * Creates a local data flow edge between each parameter and the master return of the given methods
-	 * @param method
-	 * @return
-	 */
-	private AtlasHashSet<Edge> createDataFlowSummaryEdges(Q methods) {
-		AtlasHashSet<Edge> summaryEdges = new AtlasHashSet<Edge>();
-		for(Node method : methods.eval().nodes()){
-			Q parameters = Common.toQ(method).contained().nodesTaggedWithAny(XCSG.Parameter);
-			Q returnValues = Common.toQ(method).contained().nodesTaggedWithAny(XCSG.ReturnValue);
-			for(Node parameter : parameters.eval().nodes()){
-				for(Node returnValue : returnValues.eval().nodes()){
-					Edge summaryEdge = Graph.U.createEdge(parameter, returnValue);
-					summaryEdge.tag(XCSG.LocalDataFlow);
-					summaryEdge.tag("PRIMITIVE_DATA_FLOW_SUMMARY");
-					summaryEdges.add(summaryEdge);
-				}
-			}
-		}
-		return summaryEdges;
-	}
-	
-	/**
 	 * Transfers type-compatible addresses from a data flow node to a data flow
 	 * node. An address is compatible if the address's stated type exists in the
 	 * subtype hierarchy of the data flow node that points-to information is
