@@ -2,7 +2,7 @@
 <feature
       id="com.ensoftcorp.open.pointsto.feature.group"
       label="Points-to Toolbox"
-      version="3.0.10.qualifier"
+      version="3.0.13.qualifier"
       provider-name="Ensoft Corp.">
 
    <description url="https://ensoftcorp.github.io/points-to-toolbox/">
