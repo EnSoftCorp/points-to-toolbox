@@ -39,8 +39,10 @@ SOFTWARE.
 
    <requires>
       <import plugin="org.eclipse.debug.ui"/>
-      <import plugin="com.ensoftcorp.open.commons" version="3.0.10" match="greaterOrEqual"/>
       <import plugin="net.ontopia.utils" version="5.2.2" match="greaterOrEqual"/>
+      <import feature="com.ensoftcorp.open.jimple.commons.feature.group" version="3.0.14.qualifier"/>
+      <import feature="com.ensoftcorp.open.java.commons.feature.group" version="3.0.14.qualifier"/>
+      <import feature="com.ensoftcorp.open.commons.feature.group" version="3.0.14.qualifier"/>
    </requires>
 
    <plugin
