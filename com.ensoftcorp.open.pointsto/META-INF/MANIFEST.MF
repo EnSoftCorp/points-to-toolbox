@@ -4,9 +4,7 @@ Bundle-Name: Points-to Toolbox
 Bundle-SymbolicName: com.ensoftcorp.open.pointsto;singleton:=true
 Bundle-Version: 3.0.14.qualifier
 Bundle-Vendor: EnSoft Corp.
-Require-Bundle: 
- org.eclipse.debug.ui,
- net.ontopia.utils;bundle-version="5.2.2",
+Require-Bundle: net.ontopia.utils;bundle-version="5.2.2",
  com.ensoftcorp.open.commons;bundle-version="3.0.14",
  com.ensoftcorp.open.java.commons;bundle-version="3.0.14",
  com.ensoftcorp.open.jimple.commons;bundle-version="3.0.14"
