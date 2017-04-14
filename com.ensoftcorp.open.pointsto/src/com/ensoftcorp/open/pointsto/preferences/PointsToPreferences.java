@@ -17,6 +17,19 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final Boolean RUN_POINTS_TO_ANALYSIS_DEFAULT = false;
 	private static boolean runPointsToAnalysisValue = RUN_POINTS_TO_ANALYSIS_DEFAULT;
 	
+	/**
+	 * Enables or disables points-to analysis
+	 */
+	public static void setPointsToAnalysisEnabled(){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if points-to analysis is enabled 
+	 * @return
+	 */
 	public static boolean isPointsToAnalysisEnabled(){
 		if(!initialized){
 			loadPreferences();
@@ -31,6 +44,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	private static String analysisModeValue = POINTS_TO_ANALYSIS_MODE_DEFAULT;
 	
 	/**
+	 * Configures points-to analysis mode to target Java source
+	 */
+	public static void setJavaPointsToAnalysisMode(){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, JAVA_POINTS_TO_ANALYSIS_MODE);
+		loadPreferences();
+	}
+	
+	/**
 	 * Returns true if java points-to analysis is enabled
 	 * @return
 	 */
@@ -39,6 +61,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 			loadPreferences();
 		}
 		return analysisModeValue.equals(JAVA_POINTS_TO_ANALYSIS_MODE);
+	}
+	
+	/**
+	 * Configures points-to analysis mode to target Jimple
+	 */
+	public static void setJimplePointsToAnalysisMode(){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, JIMPLE_POINTS_TO_ANALYSIS_MODE);
+		loadPreferences();
 	}
 	
 	/**
@@ -59,6 +90,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final Boolean GENERAL_LOGGING_DEFAULT = true;
 	private static boolean generalLoggingValue = GENERAL_LOGGING_DEFAULT;
 	
+	/**
+	 * Configures general logging
+	 */
+	public static void enableGeneralLogging(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(GENERAL_LOGGING, enabled);
+		loadPreferences();
+	}
+	
 	public static boolean isGeneralLoggingEnabled(){
 		if(!initialized){
 			loadPreferences();
@@ -72,6 +112,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final String TAG_ALIASES = "TAG_ALIASES";
 	public static final Boolean TAG_ALIASES_DEFAULT = true;
 	private static boolean tagAliasesValue = TAG_ALIASES_DEFAULT;
+	
+	/**
+	 * Configures alias tagging
+	 */
+	public static void enableTagAliases(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(TAG_ALIASES, enabled);
+		loadPreferences();
+	}
 	
 	public static boolean isTagAliasesEnabled(){
 		if(!initialized){
@@ -87,6 +136,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final Boolean TAG_INFERRED_DATAFLOWS_DEFAULT = true;
 	private static boolean tagInferredDataflowsValue = TAG_INFERRED_DATAFLOWS_DEFAULT;
 	
+	/**
+	 * Configures inferred data flow tagging
+	 */
+	public static void enableTagInferredDataflows(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(TAG_INFERRED_DATAFLOWS, enabled);
+		loadPreferences();
+	}
+	
 	public static boolean isTagInferredDataflowsEnabled(){
 		if(!initialized){
 			loadPreferences();
@@ -100,6 +158,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final String REWRITE_ARRAY_COMPONENTS = "REWRITE_ARRAY_COMPONENTS";
 	public static final Boolean REWRITE_ARRAY_COMPONENTS_DEFAULT = true;
 	private static boolean rewriteArrayComponentsValue = REWRITE_ARRAY_COMPONENTS_DEFAULT;
+	
+	/**
+	 * Configures array component rewritting
+	 */
+	public static void enableRewriteArrayComponents(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(REWRITE_ARRAY_COMPONENTS, enabled);
+		loadPreferences();
+	}
 	
 	public static boolean isRewriteArrayComponentsEnabled(){
 		if(!initialized){
@@ -116,6 +183,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final Boolean TRACK_PRIMITIVES_DEFAULT = false;
 	private static boolean trackPrimitivesValue = TRACK_PRIMITIVES_DEFAULT;
 	
+	/**
+	 * Configures primitive tracking
+	 */
+	public static void enableTrackPrimitives(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(TRACK_PRIMITIVES, enabled);
+		loadPreferences();
+	}
+	
 	public static boolean isTrackPrimitivesEnabled(){
 		if(!initialized){
 			loadPreferences();
@@ -130,6 +206,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final Boolean TAG_RUNTIME_TYPES_DEFAULT = true;
 	private static boolean tagRuntimeTypesValue = TAG_RUNTIME_TYPES_DEFAULT;
 	
+	/**
+	 * Configures runtime type tagging
+	 */
+	public static void enableTagRuntimeTypes(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(TAG_RUNTIME_TYPES, enabled);
+		loadPreferences();
+	}
+	
 	public static boolean isTagRuntimeTypesEnabled(){
 		if(!initialized){
 			loadPreferences();
@@ -143,6 +228,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final String DISPOSE_RESOURCES = "DISPOSE_RESOURCES";
 	public static final Boolean DISPOSE_RESOURCES_DEFAULT = true;
 	private static boolean disposeResourcesValue = DISPOSE_RESOURCES_DEFAULT;
+	
+	/**
+	 * Configures resource disposal
+	 */
+	public static void enableDisposeResources(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(DISPOSE_RESOURCES, enabled);
+		loadPreferences();
+	}
 	
 	public static boolean isDisposeResourcesEnabled(){
 		if(!initialized){
@@ -163,6 +257,23 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		preferences.setDefault(REWRITE_ARRAY_COMPONENTS, REWRITE_ARRAY_COMPONENTS_DEFAULT);
 		preferences.setDefault(TRACK_PRIMITIVES, TRACK_PRIMITIVES_DEFAULT);
 		preferences.setDefault(DISPOSE_RESOURCES, DISPOSE_RESOURCES_DEFAULT);
+	}
+	
+	/**
+	 * Restores the default preferences
+	 */
+	public static void restoreDefaults() {
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
+		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
+		preferences.setDefault(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
+		preferences.setDefault(TAG_ALIASES, TAG_ALIASES_DEFAULT);
+		preferences.setDefault(TAG_INFERRED_DATAFLOWS, TAG_INFERRED_DATAFLOWS_DEFAULT);
+		preferences.setDefault(TAG_RUNTIME_TYPES, TAG_RUNTIME_TYPES_DEFAULT);
+		preferences.setDefault(REWRITE_ARRAY_COMPONENTS, REWRITE_ARRAY_COMPONENTS_DEFAULT);
+		preferences.setDefault(TRACK_PRIMITIVES, TRACK_PRIMITIVES_DEFAULT);
+		preferences.setDefault(DISPOSE_RESOURCES, DISPOSE_RESOURCES_DEFAULT);
+		loadPreferences();
 	}
 	
 	/**
