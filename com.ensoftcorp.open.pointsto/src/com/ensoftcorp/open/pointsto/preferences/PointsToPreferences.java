@@ -18,11 +18,11 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	private static boolean runPointsToAnalysisValue = RUN_POINTS_TO_ANALYSIS_DEFAULT;
 	
 	/**
-	 * Enables or disables points-to analysis
+	 * Configures whether or not immutability analysis should be run
 	 */
-	public static void setPointsToAnalysisEnabled(){
+	public static void enabledPointsToAnalysis(boolean enabled){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
+		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, enabled);
 		loadPreferences();
 	}
 	
@@ -248,15 +248,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	@Override
 	public void initializeDefaultPreferences() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
-		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
-		preferences.setDefault(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
-		preferences.setDefault(TAG_ALIASES, TAG_ALIASES_DEFAULT);
-		preferences.setDefault(TAG_INFERRED_DATAFLOWS, TAG_INFERRED_DATAFLOWS_DEFAULT);
-		preferences.setDefault(TAG_RUNTIME_TYPES, TAG_RUNTIME_TYPES_DEFAULT);
-		preferences.setDefault(REWRITE_ARRAY_COMPONENTS, REWRITE_ARRAY_COMPONENTS_DEFAULT);
-		preferences.setDefault(TRACK_PRIMITIVES, TRACK_PRIMITIVES_DEFAULT);
-		preferences.setDefault(DISPOSE_RESOURCES, DISPOSE_RESOURCES_DEFAULT);
+		setDefaults(preferences);
 	}
 	
 	/**
@@ -264,6 +256,15 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	 */
 	public static void restoreDefaults() {
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		setDefaults(preferences);
+		loadPreferences();
+	}
+	
+	/**
+	 * Helper method to set defaults
+	 * @param preferences
+	 */
+	private static void setDefaults(IPreferenceStore preferences) {
 		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
 		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
 		preferences.setDefault(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
@@ -273,7 +274,6 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		preferences.setDefault(REWRITE_ARRAY_COMPONENTS, REWRITE_ARRAY_COMPONENTS_DEFAULT);
 		preferences.setDefault(TRACK_PRIMITIVES, TRACK_PRIMITIVES_DEFAULT);
 		preferences.setDefault(DISPOSE_RESOURCES, DISPOSE_RESOURCES_DEFAULT);
-		loadPreferences();
 	}
 	
 	/**
