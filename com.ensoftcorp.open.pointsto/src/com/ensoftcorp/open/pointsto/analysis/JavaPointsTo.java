@@ -18,7 +18,7 @@ import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
-import com.ensoftcorp.atlas.java.core.script.CommonQueries;
+import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.java.commons.analysis.PrimitiveAnalysis;
 import com.ensoftcorp.open.pointsto.log.Log;
 import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
