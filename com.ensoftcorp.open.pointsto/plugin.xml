@@ -10,7 +10,7 @@
 	   </initializer>
 	</extension>
    
-   <!-- create a preferences menu item for points-to analysis -->
+   <!-- create a preferences page for points-to toolbox -->
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
