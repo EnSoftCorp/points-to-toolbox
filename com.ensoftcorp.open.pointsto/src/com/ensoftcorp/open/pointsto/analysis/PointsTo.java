@@ -1,5 +1,6 @@
 package com.ensoftcorp.open.pointsto.analysis;
 
+import java.text.DecimalFormat;
 import java.util.HashSet;
 
 import com.ensoftcorp.atlas.core.db.graph.Graph;
@@ -31,18 +32,20 @@ public abstract class PointsTo {
 	 * and returns the time in milliseconds to complete the analysis
 	 * @return
 	 */
-	public long run(){
+	public double run(){
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
 		if(hasRun){
 			return 0;
 		} else {
-			long start = System.currentTimeMillis();
 			Log.info("Starting " + getClass().getSimpleName() + " points-to analysis");
+			long start = System.nanoTime();
 			runAnalysis();
-			long time = System.currentTimeMillis() - start;
-			Log.info("Finished " + getClass().getSimpleName() + " points-to analysis in " + time + "ms");
+			long stop = System.nanoTime();
+			double time = (stop - start)/1000.0/1000.0;
+			DecimalFormat decimalFormat = new DecimalFormat("#.##");
+			Log.info("Finished " + getClass().getSimpleName() + " points-to analysis in " + decimalFormat.format(time) + "ms");
 			hasRun = true;
 			return time;
 		}
