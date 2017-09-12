@@ -2,7 +2,7 @@
 <feature
       id="com.ensoftcorp.open.pointsto.feature"
       label="Points-to Toolbox"
-      version="3.1.6.qualifier"
+      version="3.1.7.qualifier"
       provider-name="Ensoft Corp.">
 
    <description url="https://ensoftcorp.github.io/points-to-toolbox/">
@@ -39,9 +39,9 @@ SOFTWARE.
 
    <requires>
       <import plugin="net.ontopia.utils" version="5.2.2" match="greaterOrEqual"/>
-      <import feature="com.ensoftcorp.open.jimple.commons.feature" version="3.1.6.qualifier"/>
-      <import feature="com.ensoftcorp.open.java.commons.feature" version="3.1.6.qualifier"/>
-      <import feature="com.ensoftcorp.open.commons.feature" version="3.1.6.qualifier"/>
+      <import feature="com.ensoftcorp.open.jimple.commons.feature" version="3.1.7.qualifier"/>
+      <import feature="com.ensoftcorp.open.java.commons.feature" version="3.1.7.qualifier"/>
+      <import feature="com.ensoftcorp.open.commons.feature" version="3.1.7.qualifier"/>
    </requires>
 
    <plugin
