@@ -13,12 +13,15 @@ import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
 import com.ensoftcorp.atlas.core.script.StyledResult;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.ui.scripts.selections.FilteringAtlasSmartViewScript;
+import com.ensoftcorp.atlas.ui.scripts.selections.IExplorableScript;
 import com.ensoftcorp.atlas.ui.scripts.selections.IResizableScript;
+import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
+import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.pointsto.common.PointsToAnalysis;
 import com.ensoftcorp.open.pointsto.log.Log;
 
-public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript implements IResizableScript {
+public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
 	@Override
 	protected String[] getSupportedNodeTags() {
@@ -33,6 +36,11 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 	@Override
 	public String getTitle() {
 		return "Points-to Aliases";
+	}
+	
+	@Override
+	public FrontierStyledResult explore(FrontierEdgeExploreEvent event, FrontierStyledResult oldResult) {
+		return SimpleScriptUtil.explore(this, event, oldResult);
 	}
 
 	@Override
