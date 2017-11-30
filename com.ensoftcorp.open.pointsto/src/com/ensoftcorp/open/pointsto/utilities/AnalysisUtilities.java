@@ -116,13 +116,13 @@ public class AnalysisUtilities {
 		Q typeToSearchContext = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.InvokedType));
 		
 		Q concreteTypes = Common.resolve(monitor, Common.universe().nodesTaggedWithAny(XCSG.ArrayType, XCSG.Java.Class).difference(Common.universe().nodesTaggedWithAny(XCSG.Java.AbstractClass)));
-		Q finalConcreteTypes = Common.resolve(monitor, concreteTypes.nodesTaggedWithAny(Attr.Node.IS_FINAL).union(roots(supertypeContext, concreteTypes)));
+		Q finalConcreteTypes = Common.resolve(monitor, concreteTypes.nodesTaggedWithAny(XCSG.Java.finalClass).union(roots(supertypeContext, concreteTypes)));
 		
 		Q methodSignatureContext = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.InvokedFunction, XCSG.InvokedSignature));
 		
 		Q methods = Common.universe().nodesTaggedWithAny(XCSG.InstanceMethod);
 		Q concreteMemberMethods = methods.difference(Common.universe().nodesTaggedWithAny(XCSG.abstractMethod));
-		Q finalMemberMethods = Common.resolve(monitor, concreteMemberMethods.nodesTaggedWithAny(Attr.Node.IS_FINAL).union(roots(overridesContext, concreteMemberMethods)));
+		Q finalMemberMethods = Common.resolve(monitor, concreteMemberMethods.nodesTaggedWithAny(XCSG.Java.finalMethod).union(roots(overridesContext, concreteMemberMethods)));
 		
 		Q resolvableCallsites = Common.resolve(monitor, Common.universe().nodesTaggedWithAny(XCSG.StaticDispatchCallSite).union(
 				typeToSearchContext.predecessors(finalConcreteTypes).nodesTaggedWithAny(XCSG.CallSite),
