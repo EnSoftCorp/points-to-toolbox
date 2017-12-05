@@ -1,6 +1,8 @@
 package com.ensoftcorp.open.pointsto.analysis;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -18,6 +20,7 @@ import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.algorithms.StronglyConnectedComponents;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.java.commons.analysis.PrimitiveAnalysis;
 import com.ensoftcorp.open.pointsto.log.Log;
@@ -41,6 +44,8 @@ public class JavaPointsTo extends PointsTo {
 	 * Attribute key name for node points-to sets
 	 */
 	private static final String POINTS_TO_SET = "java-points-to-set";
+	
+	private static final String SCC_GROUP_ATTRIBUTE = "SCC_GROUP";
 	
 	/**
 	 * Gets or creates the points to set for a graph element.
@@ -329,11 +334,21 @@ public class JavaPointsTo extends PointsTo {
 		dfNodes.addAll(conservativeDF.eval().nodes());
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		
+		
+		int sccGroupID = 0;
+		StronglyConnectedComponents sccs = new StronglyConnectedComponents(dfGraph);
+		for(AtlasHashSet<Node> scc : sccs.findSCCs()){
+			for(Node node : scc){
+				node.putAttr(SCC_GROUP_ATTRIBUTE, new Integer(sccGroupID));
+			}
+			sccGroupID++;
+		}
+		
 		// create graphs and sets for resolving dynamic dispatches
 		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
 		Graph dfInvokeThisGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.IdentityPassedTo)).eval();
 		Graph methodSignatureGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.InvokedFunction, XCSG.InvokedSignature)).eval();
-
+		
 		// create graphs for performing array analysis
 		Q arrayAccess = Common.universe().nodesTaggedWithAny(XCSG.ArrayAccess);
 		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
@@ -460,26 +475,38 @@ public class JavaPointsTo extends PointsTo {
 	 * @return Returns true iff new addresses were transfered, false otherwise
 	 */
 	private boolean transferTypeCompatibleAddresses(Node from, Node to){
-		boolean toReceivedNewAddresses = false;
-		HashSet<Integer> fromAddresses = getPointsToSet(from);
-		HashSet<Integer> toAddresses = getPointsToSet(to);		
-		// need to check type compatibility
-		Node toStatedType = AnalysisUtilities.statedType(to);
-		if(toStatedType != null){
-			// if the from type is compatible with the compatible to type set, add it
-			for(Integer fromAddress : fromAddresses){
-				Node addressType = addressToType.get(fromAddress);
-				if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
-					// primitives may get autoboxed and would otherwise not match subtypes
-					toReceivedNewAddresses |= toAddresses.add(fromAddress);
-				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
-					toReceivedNewAddresses |= toAddresses.add(fromAddress);
-				}
-			}
+		
+		AtlasSet<Node> toNodes = new AtlasHashSet<Node>();
+		if(to.hasAttr(SCC_GROUP_ATTRIBUTE)){
+			toNodes.addAll(Common.toQ(dfGraph).selectNode(SCC_GROUP_ATTRIBUTE, to.getAttr(SCC_GROUP_ATTRIBUTE)).eval().nodes());
 		} else {
-			// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
-			Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
+			toNodes.add(to);
 		}
+		
+		boolean toReceivedNewAddresses = false;
+		for(Node toNode : toNodes){
+			to = toNode;
+			HashSet<Integer> fromAddresses = getPointsToSet(from);
+			HashSet<Integer> toAddresses = getPointsToSet(to);		
+			// need to check type compatibility
+			Node toStatedType = AnalysisUtilities.statedType(to);
+			if(toStatedType != null){
+				// if the from type is compatible with the compatible to type set, add it
+				for(Integer fromAddress : fromAddresses){
+					Node addressType = addressToType.get(fromAddress);
+					if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
+						// primitives may get autoboxed and would otherwise not match subtypes
+						toReceivedNewAddresses |= toAddresses.add(fromAddress);
+					} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+						toReceivedNewAddresses |= toAddresses.add(fromAddress);
+					}
+				}
+			} else {
+				// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
+				Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
+			}
+		}
+		
 		return toReceivedNewAddresses;
 	}
 	
