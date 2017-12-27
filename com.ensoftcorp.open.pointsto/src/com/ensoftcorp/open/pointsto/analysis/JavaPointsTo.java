@@ -1,8 +1,6 @@
 package com.ensoftcorp.open.pointsto.analysis;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
