@@ -1,24 +1,51 @@
 package com.ensoftcorp.open.pointsto.utilities.frontier;
 
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 
 /**
- * A First In First Out based worklist
+ * A Last In First Out based worklist
  * 
  * @author Ben Holland
  *
  * @param <E>
  */
-public class FIFOFrontier<E> implements Frontier<E> {
+public class LIFOFrontier<E> implements Frontier<E> {
 
-	private LinkedHashSet<E> frontier;
+	// reference: https://stackoverflow.com/a/14024061/475329
+	class CachedLinkedHashSet<F> extends LinkedHashSet<F> {
+		private static final long serialVersionUID = 1L;
+		private F last = null;
+	    
+		public CachedLinkedHashSet(int initialCapacity, float f) {
+			super(initialCapacity, f);
+		}
+	    
+		public CachedLinkedHashSet() {
+			super();
+		}
+		
+		public boolean add(F f) {
+	        last = f;
+	        return super.add(f);
+	    }
+		
+	    public F getLast() {
+	        return last;
+	    }
+
+	    public F removeLast() {
+	    	remove(last);
+	        return last;
+	    }
+	}
+	
+	private CachedLinkedHashSet<E> frontier;
 
 	/**
 	 * Creates a new frontier
 	 */
-	public FIFOFrontier() {
-		frontier = new LinkedHashSet<E>();
+	public LIFOFrontier() {
+		frontier = new CachedLinkedHashSet<E>();
 	}
 
 	/**
@@ -26,8 +53,8 @@ public class FIFOFrontier<E> implements Frontier<E> {
 	 * 
 	 * @param initialCapacity
 	 */
-	public FIFOFrontier(int initialCapacity) {
-		frontier = new LinkedHashSet<E>(initialCapacity, 0.75f);
+	public LIFOFrontier(int initialCapacity) {
+		frontier = new CachedLinkedHashSet<E>(initialCapacity, 0.75f);
 	}
 
 	/**
@@ -40,16 +67,12 @@ public class FIFOFrontier<E> implements Frontier<E> {
 	}
 
 	/**
-	 * Returns (and removes) the next element from the frontier in First in First out
-	 * (FIFO) order
+	 * Returns (and removes) the next element from the frontier in Last in First out (LIFO) order
 	 * 
 	 * @return
 	 */
 	public E next() {
-		Iterator<E> iterator = frontier.iterator();
-		E next = iterator.next();
-		iterator.remove();
-		return next;
+		return frontier.removeLast();
 	}
 
 	/**

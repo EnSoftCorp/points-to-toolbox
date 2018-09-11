@@ -52,7 +52,7 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 				
 				// make some graph enhancements
 				if(pointsToAnalysis != null) {				
-					if(PointsToPreferences.isRewriteArrayComponentsEnabled()){
+					if(PointsToPreferences.isArrayComponentTrackingEnabled() && PointsToPreferences.isRewriteArrayComponentsEnabled()){
 						long numArrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes().size();
 						long numRewrittenArrayComponents = GraphEnhancements.rewriteArrayComponents(pointsToAnalysis);
 						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Rewrote " + numArrayComponents + " array components to " + numRewrittenArrayComponents + " array components.");

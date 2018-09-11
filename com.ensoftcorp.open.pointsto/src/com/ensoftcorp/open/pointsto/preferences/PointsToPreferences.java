@@ -90,6 +90,73 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final Boolean GENERAL_LOGGING_DEFAULT = true;
 	private static boolean generalLoggingValue = GENERAL_LOGGING_DEFAULT;
 	
+	public static final String POINTS_TO_ANALYSIS_FRONTIER_MODE = "POINTS_TO_ANALYSIS_FRONTIER_MODE";
+	public static final String POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE = "POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE";
+	public static final String POINTS_TO_ANALYSIS_LIFO_FRONTIER_MODE = "POINTS_TO_ANALYSIS_LIFO_FRONTIER_MODE";
+	public static final String POINTS_TO_ANALYSIS_LRU_FRONTIER_MODE = "POINTS_TO_ANALYSIS_LRU_FRONTIER_MODE";
+	public static final String POINTS_TO_ANALYSIS_FRONTIER_MODE_DEFAULT = POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE;
+	private static String frontierAnalysisModeValue = POINTS_TO_ANALYSIS_FRONTIER_MODE_DEFAULT;
+	
+	/**
+	 * Configures points-to analysis frontier mode to use FIFO mode
+	 */
+	public static void setPointsToAnalysisFIFOFrontierMode(){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(POINTS_TO_ANALYSIS_FRONTIER_MODE, POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if points-to analysis FIFO frontier is enabled
+	 * @return
+	 */
+	public static boolean isPointsToAnalysisFIFOFrontierMode(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return frontierAnalysisModeValue.equals(POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE);
+	}
+	
+	/**
+	 * Configures points-to analysis frontier mode to use LIFO mode
+	 */
+	public static void setPointsToAnalysisLIFOFrontierMode(){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(POINTS_TO_ANALYSIS_FRONTIER_MODE, POINTS_TO_ANALYSIS_LIFO_FRONTIER_MODE);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if points-to analysis LIFO frontier is enabled
+	 * @return
+	 */
+	public static boolean isPointsToAnalysisLIFOFrontierMode(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return frontierAnalysisModeValue.equals(POINTS_TO_ANALYSIS_LIFO_FRONTIER_MODE);
+	}
+	
+	/**
+	 * Configures points-to analysis frontier mode to use LRU mode
+	 */
+	public static void setPointsToAnalysisLRUFrontierMode(){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(POINTS_TO_ANALYSIS_FRONTIER_MODE, POINTS_TO_ANALYSIS_LRU_FRONTIER_MODE);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if points-to analysis LRU frontier is enabled
+	 * @return
+	 */
+	public static boolean isPointsToAnalysisLRUFrontierMode(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return frontierAnalysisModeValue.equals(POINTS_TO_ANALYSIS_LRU_FRONTIER_MODE);
+	}
+	
 	/**
 	 * Configures general logging
 	 */
@@ -118,7 +185,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	 */
 	public static void enableArrayComponentTracking(boolean enabled){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		preferences.setValue(TAG_ALIASES, enabled);
+		preferences.setValue(ARRAY_COMPONENT_TRACKING, enabled);
 		loadPreferences();
 	}
 	
@@ -275,6 +342,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
 		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
 		preferences.setDefault(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
+		preferences.setDefault(POINTS_TO_ANALYSIS_FRONTIER_MODE, POINTS_TO_ANALYSIS_FRONTIER_MODE_DEFAULT);
 		preferences.setDefault(ARRAY_COMPONENT_TRACKING, ARRAY_COMPONENT_TRACKING_DEFAULT);
 		preferences.setDefault(TAG_ALIASES, TAG_ALIASES_DEFAULT);
 		preferences.setDefault(TAG_INFERRED_DATAFLOWS, TAG_INFERRED_DATAFLOWS_DEFAULT);
@@ -292,6 +360,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		preferences.setValue(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
 		preferences.setValue(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
 		preferences.setValue(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
+		preferences.setValue(POINTS_TO_ANALYSIS_FRONTIER_MODE, POINTS_TO_ANALYSIS_FRONTIER_MODE_DEFAULT);
 		preferences.setValue(ARRAY_COMPONENT_TRACKING, ARRAY_COMPONENT_TRACKING_DEFAULT);
 		preferences.setValue(TAG_ALIASES, TAG_ALIASES_DEFAULT);
 		preferences.setValue(TAG_INFERRED_DATAFLOWS, TAG_INFERRED_DATAFLOWS_DEFAULT);
@@ -310,6 +379,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 			runPointsToAnalysisValue = preferences.getBoolean(RUN_POINTS_TO_ANALYSIS);
 			analysisModeValue = preferences.getString(POINTS_TO_ANALYSIS_MODE);
+			frontierAnalysisModeValue = preferences.getString(POINTS_TO_ANALYSIS_FRONTIER_MODE);
 			arrayComponentTrackingValue = preferences.getBoolean(ARRAY_COMPONENT_TRACKING);
 			generalLoggingValue = preferences.getBoolean(GENERAL_LOGGING);
 			tagAliasesValue = preferences.getBoolean(TAG_ALIASES);

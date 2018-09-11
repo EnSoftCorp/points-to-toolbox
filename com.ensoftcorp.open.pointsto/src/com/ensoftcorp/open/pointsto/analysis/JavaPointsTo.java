@@ -28,6 +28,8 @@ import com.ensoftcorp.open.pointsto.utilities.AnalysisUtilities;
 import com.ensoftcorp.open.pointsto.utilities.SubtypeCache;
 import com.ensoftcorp.open.pointsto.utilities.frontier.FIFOFrontier;
 import com.ensoftcorp.open.pointsto.utilities.frontier.Frontier;
+import com.ensoftcorp.open.pointsto.utilities.frontier.LIFOFrontier;
+import com.ensoftcorp.open.pointsto.utilities.frontier.LRUFrontier;
 
 import net.ontopia.utils.CompactHashMap;
 
@@ -182,7 +184,7 @@ public class JavaPointsTo extends PointsTo {
 	/**
 	 * A worklist of nodes containing points-to information to propagate
 	 */
-	private final Frontier<Node> frontier = new FIFOFrontier<Node>();
+	private final Frontier<Node> frontier;
 	
 	/**
 	 * A progress monitor for use with resolving sets
@@ -218,6 +220,23 @@ public class JavaPointsTo extends PointsTo {
 	private Graph dfGraph;
 	private AtlasSet<GraphElement> dfNodes = new AtlasHashSet<GraphElement>();
 	private AtlasSet<GraphElement> dfEdges = new AtlasHashSet<GraphElement>();
+	
+	public JavaPointsTo() {
+		if(PointsToPreferences.isPointsToAnalysisFIFOFrontierMode()) {
+			frontier = new FIFOFrontier<Node>();
+			if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Points-to Analysis Frontier Mode: FIFO");
+		} else if(PointsToPreferences.isPointsToAnalysisLIFOFrontierMode()) {
+			frontier = new LIFOFrontier<Node>();
+			if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Points-to Analysis Frontier Mode: LIFO");
+		} else if(PointsToPreferences.isPointsToAnalysisLRUFrontierMode()) {
+			frontier = new LRUFrontier<Node>();
+			if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Points-to Analysis Frontier Mode: LRU");
+		} else { 
+			// default
+			frontier = new FIFOFrontier<Node>();
+			if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Points-to Analysis Frontier Mode: FIFO");
+		}
+	}
 	
 	@Override
 	public Graph getInferredDataFlowGraph() {
@@ -283,7 +302,7 @@ public class JavaPointsTo extends PointsTo {
 				// if this is an array instantiation then we should create an
 				// array memory model and addresses for array memory references
 				// of each array dimension of the array
-				if(statedType.hasAttr(Attr.Node.DIMENSION)){
+				if(PointsToPreferences.isArrayComponentTrackingEnabled() && statedType.hasAttr(Attr.Node.DIMENSION)){
 					Node arrayType = statedType;
 					int arrayDimension = (int) arrayType.getAttr(Attr.Node.DIMENSION);
 					Node arrayElementType = Common.universe().edgesTaggedWithAny(XCSG.ArrayElementType).successors(Common.toQ(arrayType)).eval().nodes().getFirst();
@@ -463,13 +482,13 @@ public class JavaPointsTo extends PointsTo {
 					}
 					
 					// if we hit an array write, new values need to be added to the array memory model
-					if(to.tags().contains(XCSG.ArrayWrite)){
+					if(PointsToPreferences.isArrayComponentTrackingEnabled() && to.tags().contains(XCSG.ArrayWrite)){
 						// "to" node is an array write so propagate addresses
 						// from array write to the corresponding array reads
 						updateArrayMemoryModels(to);
 					} 
 					
-					if(arrayReferences.contains(to)){
+					if(PointsToPreferences.isArrayComponentTrackingEnabled() && arrayReferences.contains(to)){
 						// "to" node is an array write reference, so it may be possible to transfer 
 						// new addresses of array values from new array writes to corresponding array 
 						// reads or array writes to new array reads, reads will be added to the frontier
