@@ -42,11 +42,7 @@ public class JimplePointsTo extends PointsTo {
 	 * Attribute key name for node points-to sets
 	 */
 	private static final String POINTS_TO_SET = "jimple-points-to-set";
-	
-//	private static final String SCC_GROUP_ATTRIBUTE = "SCC_GROUP";
-	
-	private long lastUpdateTime = 0;
-	
+
 	/**
 	 * Gets or creates the points to set for a graph element.
 	 * Returns a reference to the points to set so that updates to the 
@@ -272,7 +268,6 @@ public class JimplePointsTo extends PointsTo {
 		long newRefNodesSeeded = 0;
 		
 		for(Node newRef : newRefNodes){
-			
 			if(PointsToPreferences.isGeneralLoggingEnabled() && System.currentTimeMillis()-lastUpdateTime > PointsTo.UPDATE_INTERVAL) {
 				Log.info("Seeding Frontier: " + newRefNodesSeeded + "/" + newRefNodesSize);
 				lastUpdateTime = System.currentTimeMillis();
@@ -380,16 +375,7 @@ public class JimplePointsTo extends PointsTo {
 			dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		}
 		
-//		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Computing SCCs...");
-//		int sccGroupID = 0;
-//		StronglyConnectedComponents sccs = new StronglyConnectedComponents(dfGraph);
-//		for(AtlasHashSet<Node> scc : sccs.findSCCs()){
-//			for(Node node : scc){
-//				node.putAttr(SCC_GROUP_ATTRIBUTE, new Integer(sccGroupID));
-//			}
-//			sccGroupID++;
-//		}
-//		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Finished Computing SCCs.");
+		if(PointsToPreferences.isCollapsingSCCsEnabled()) dfGraph = collapseSCCs(dfGraph);
 		
 		// create graphs and sets for resolving dynamic dispatches
 		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
@@ -448,6 +434,7 @@ public class JimplePointsTo extends PointsTo {
 						AtlasSet<Node> signatureSet = AnalysisUtilities.getSignatureSet(resolvedDispatches);
 						
 						// ASSERT: only DF_INTERPROCEDURAL edges have a CALL_SITE_ID
+						// Legacy Comment: Tom says blame Jeremias if this isn't true :P
 						Address csid = (Address) callsite.getAttr(Attr.Node.CALL_SITE_ID);
 	
 						// for each resolved dispatch we need to update the data flow graph for the next iteration
@@ -520,6 +507,8 @@ public class JimplePointsTo extends PointsTo {
 			}
 			iteration++;
 		}
+		
+		if(PointsToPreferences.isCollapsingSCCsEnabled()) dfGraph = expandSCCs(dfGraph);
 	}
 	
 	/**
@@ -573,34 +562,24 @@ public class JimplePointsTo extends PointsTo {
 	 * @return Returns true iff new addresses were transfered, false otherwise
 	 */
 	private boolean transferTypeCompatibleAddresses(Node from, Node to){
-//		AtlasSet<Node> toNodes = new AtlasHashSet<Node>();
-//		if(to.hasAttr(SCC_GROUP_ATTRIBUTE)){
-//			toNodes.addAll(Common.toQ(dfGraph).selectNode(SCC_GROUP_ATTRIBUTE, to.getAttr(SCC_GROUP_ATTRIBUTE)).eval().nodes());
-//		} else {
-//			toNodes.add(to);
-//		}
-		
 		boolean toReceivedNewAddresses = false;
-//		for(Node toNode : toNodes) {
-//			to = toNode;
-			HashSet<Integer> fromAddresses = getPointsToSet(from);
-			HashSet<Integer> toAddresses = getPointsToSet(to);		
-			// need to check type compatibility
-			Node toStatedType = AnalysisUtilities.statedType(to);
-			if(toStatedType != null){
-				// if the from type is compatible with the compatible to type set, add it
-				for(Integer fromAddress : fromAddresses){
-					Node addressType = addressToType.get(fromAddress);
-					if (subtypes.isSubtypeOf(addressType, toStatedType)) {
-						toReceivedNewAddresses |= toAddresses.add(fromAddress);
-						serializeAlias(to, fromAddress);
-					}
+		HashSet<Integer> fromAddresses = getPointsToSet(from);
+		HashSet<Integer> toAddresses = getPointsToSet(to);		
+		// need to check type compatibility
+		Node toStatedType = AnalysisUtilities.statedType(to);
+		if(toStatedType != null){
+			// if the from type is compatible with the compatible to type set, add it
+			for(Integer fromAddress : fromAddresses){
+				Node addressType = addressToType.get(fromAddress);
+				if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+					toReceivedNewAddresses |= toAddresses.add(fromAddress);
+					serializeAlias(to, fromAddress);
 				}
-			} else {
-				// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
-				Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
 			}
-//		}
+		} else {
+			// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
+			Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
+		}
 		
 		return toReceivedNewAddresses;
 	}
@@ -656,35 +635,23 @@ public class JimplePointsTo extends PointsTo {
 	 * @return
 	 */
 	private boolean transferTypeCompatibleAddressesFromArrayMemoryModel(Integer arrayReferenceAddress, Node arrayRead) {
-		
-//		AtlasSet<Node> arrayReadNodes = new AtlasHashSet<Node>();
-//		if(arrayRead.hasAttr(SCC_GROUP_ATTRIBUTE)){
-//			arrayReadNodes.addAll(Common.toQ(dfGraph).selectNode(SCC_GROUP_ATTRIBUTE, arrayRead.getAttr(SCC_GROUP_ATTRIBUTE)).eval().nodes());
-//		} else {
-//			arrayReadNodes.add(arrayRead);
-//		}
-		
 		boolean readReceivedNewAddresses = false;
-		
-//		for(Node arrayReadNode : arrayReadNodes) {
-//			arrayRead = arrayReadNode;
-			HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
-			HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
-			// need to check type compatibility
-			Node toStatedType = AnalysisUtilities.statedType(arrayRead);
-			if(toStatedType != null){
-				// if the from type is compatible with the compatible to type set, add it
-				for(Integer fromAddress : fromAddresses){
-					Node addressType = addressToType.get(fromAddress);
-					if (subtypes.isSubtypeOf(addressType, toStatedType)) {
-						readReceivedNewAddresses |= toAddresses.add(fromAddress);
-						serializeAlias(arrayRead, fromAddress);
-					}
+		HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
+		HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
+		// need to check type compatibility
+		Node toStatedType = AnalysisUtilities.statedType(arrayRead);
+		if(toStatedType != null){
+			// if the from type is compatible with the compatible to type set, add it
+			for(Integer fromAddress : fromAddresses){
+				Node addressType = addressToType.get(fromAddress);
+				if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+					readReceivedNewAddresses |= toAddresses.add(fromAddress);
+					serializeAlias(arrayRead, fromAddress);
 				}
-			} else {
-				Log.warning("No stated type during transfer for array read: " + arrayRead.address().toAddressString());
 			}
-//		}
+		} else {
+			Log.warning("No stated type during transfer for array read: " + arrayRead.address().toAddressString());
+		}
 		
 		return readReceivedNewAddresses;
 	}

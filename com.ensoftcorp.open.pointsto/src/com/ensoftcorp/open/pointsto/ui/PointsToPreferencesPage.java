@@ -26,6 +26,7 @@ public class PointsToPreferencesPage extends FieldEditorPreferencePage implement
 	private static final String JAVA_POINTS_TO_ANALYSIS_MODE_DESCRIPTION = "Enable Java source points-to analysis";
 	
 	private static final String GENERAL_LOGGING_DESCRIPTION = "Enable general logging";
+	private static final String COLLAPSE_SCCS_DESCRIPTION = "Collapse SCCs";
 	private static final String POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE_DESCRIPTION = "Process the frontier using a FIFO (first in, first out) strategy";
 	private static final String POINTS_TO_ANALYSIS_LIFO_FRONTIER_MODE_DESCRIPTION = "Process the frontier using a LIFO (last in, last out) strategy";
 	private static final String POINTS_TO_ANALYSIS_LRU_FRONTIER_MODE_DESCRIPTION = "Process the frontier using a LRU (least recently used) strategy";
@@ -83,6 +84,7 @@ public class PointsToPreferencesPage extends FieldEditorPreferencePage implement
 		
 		addField(new SpacerFieldEditor(getFieldEditorParent()));
 		addField(new LabelFieldEditor("Advanced Analysis Options", getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PointsToPreferences.COLLAPSE_SCCS, "&" + COLLAPSE_SCCS_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(PointsToPreferences.GENERAL_LOGGING, "&" + GENERAL_LOGGING_DESCRIPTION, getFieldEditorParent()));
 		RadioGroupFieldEditor frontierMode = new RadioGroupFieldEditor(
 				PointsToPreferences.POINTS_TO_ANALYSIS_FRONTIER_MODE,

@@ -90,6 +90,53 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	public static final Boolean GENERAL_LOGGING_DEFAULT = true;
 	private static boolean generalLoggingValue = GENERAL_LOGGING_DEFAULT;
 	
+	/**
+	 * Configures general logging
+	 */
+	public static void enableGeneralLogging(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(GENERAL_LOGGING, enabled);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if general logging is enabled
+	 * @return
+	 */
+	public static boolean isGeneralLoggingEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return generalLoggingValue;
+	}
+	
+	/**
+	 * Enable/disable collapsing SCCs
+	 */
+	public static final String COLLAPSE_SCCS = "COLLAPSE_SCCS";
+	public static final Boolean COLLAPSE_SCCS_DEFAULT = false;
+	private static boolean collapseSCCsValue = COLLAPSE_SCCS_DEFAULT;
+	
+	/**
+	 * Configures collapsing SCCs
+	 */
+	public static void enableCollapsingSCCs(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(COLLAPSE_SCCS, enabled);
+		loadPreferences();
+	}
+	
+	/**
+	 * Returns true if collapsing SCCs is enabled
+	 * @return
+	 */
+	public static boolean isCollapsingSCCsEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return collapseSCCsValue;
+	}
+	
 	public static final String POINTS_TO_ANALYSIS_FRONTIER_MODE = "POINTS_TO_ANALYSIS_FRONTIER_MODE";
 	public static final String POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE = "POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE";
 	public static final String POINTS_TO_ANALYSIS_LIFO_FRONTIER_MODE = "POINTS_TO_ANALYSIS_LIFO_FRONTIER_MODE";
@@ -155,22 +202,6 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 			loadPreferences();
 		}
 		return frontierAnalysisModeValue.equals(POINTS_TO_ANALYSIS_LRU_FRONTIER_MODE);
-	}
-	
-	/**
-	 * Configures general logging
-	 */
-	public static void enableGeneralLogging(boolean enabled){
-		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		preferences.setValue(GENERAL_LOGGING, enabled);
-		loadPreferences();
-	}
-	
-	public static boolean isGeneralLoggingEnabled(){
-		if(!initialized){
-			loadPreferences();
-		}
-		return generalLoggingValue;
 	}
 	
 	/**
@@ -342,6 +373,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
 		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
 		preferences.setDefault(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
+		preferences.setDefault(COLLAPSE_SCCS, COLLAPSE_SCCS_DEFAULT);
 		preferences.setDefault(POINTS_TO_ANALYSIS_FRONTIER_MODE, POINTS_TO_ANALYSIS_FRONTIER_MODE_DEFAULT);
 		preferences.setDefault(ARRAY_COMPONENT_TRACKING, ARRAY_COMPONENT_TRACKING_DEFAULT);
 		preferences.setDefault(TAG_ALIASES, TAG_ALIASES_DEFAULT);
@@ -360,6 +392,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		preferences.setValue(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
 		preferences.setValue(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
 		preferences.setValue(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
+		preferences.setValue(COLLAPSE_SCCS, COLLAPSE_SCCS_DEFAULT);
 		preferences.setValue(POINTS_TO_ANALYSIS_FRONTIER_MODE, POINTS_TO_ANALYSIS_FRONTIER_MODE_DEFAULT);
 		preferences.setValue(ARRAY_COMPONENT_TRACKING, ARRAY_COMPONENT_TRACKING_DEFAULT);
 		preferences.setValue(TAG_ALIASES, TAG_ALIASES_DEFAULT);
@@ -382,6 +415,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 			frontierAnalysisModeValue = preferences.getString(POINTS_TO_ANALYSIS_FRONTIER_MODE);
 			arrayComponentTrackingValue = preferences.getBoolean(ARRAY_COMPONENT_TRACKING);
 			generalLoggingValue = preferences.getBoolean(GENERAL_LOGGING);
+			collapseSCCsValue = preferences.getBoolean(COLLAPSE_SCCS);
 			tagAliasesValue = preferences.getBoolean(TAG_ALIASES);
 			tagInferredDataflowsValue = preferences.getBoolean(TAG_INFERRED_DATAFLOWS);
 			rewriteArrayComponentsValue = preferences.getBoolean(REWRITE_ARRAY_COMPONENTS);

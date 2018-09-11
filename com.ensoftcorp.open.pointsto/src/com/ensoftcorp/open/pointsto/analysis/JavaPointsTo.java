@@ -44,10 +44,6 @@ public class JavaPointsTo extends PointsTo {
 	 */
 	private static final String POINTS_TO_SET = "java-points-to-set";
 	
-//	private static final String SCC_GROUP_ATTRIBUTE = "SCC_GROUP";
-	
-	private long lastUpdateTime = 0;
-	
 	/**
 	 * Gets or creates the points to set for a graph element.
 	 * Returns a reference to the points to set so that updates to the 
@@ -382,16 +378,7 @@ public class JavaPointsTo extends PointsTo {
 		dfNodes.addAll(conservativeDF.eval().nodes());
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		
-//		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Computing SCCs...");
-//		int sccGroupID = 0;
-//		StronglyConnectedComponents sccs = new StronglyConnectedComponents(dfGraph);
-//		for(AtlasHashSet<Node> scc : sccs.findSCCs()){
-//			for(Node node : scc){
-//				node.putAttr(SCC_GROUP_ATTRIBUTE, new Integer(sccGroupID));
-//			}
-//			sccGroupID++;
-//		}
-//		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Finished Computing SCCs.");
+		if(PointsToPreferences.isCollapsingSCCsEnabled()) dfGraph = collapseSCCs(dfGraph);
 		
 		// create graphs and sets for resolving dynamic dispatches
 		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
@@ -522,6 +509,8 @@ public class JavaPointsTo extends PointsTo {
 			}
 			iteration++;
 		}
+		
+		if(PointsToPreferences.isCollapsingSCCsEnabled()) dfGraph = expandSCCs(dfGraph);
 	}
 	
 	/**
@@ -535,39 +524,28 @@ public class JavaPointsTo extends PointsTo {
 	 * @return Returns true iff new addresses were transfered, false otherwise
 	 */
 	private boolean transferTypeCompatibleAddresses(Node from, Node to){
-		
-//		AtlasSet<Node> toNodes = new AtlasHashSet<Node>();
-//		if(to.hasAttr(SCC_GROUP_ATTRIBUTE)){
-//			toNodes.addAll(Common.toQ(dfGraph).selectNode(SCC_GROUP_ATTRIBUTE, to.getAttr(SCC_GROUP_ATTRIBUTE)).eval().nodes());
-//		} else {
-//			toNodes.add(to);
-//		}
-		
 		boolean toReceivedNewAddresses = false;
-//		for(Node toNode : toNodes){
-//			to = toNode;
-			HashSet<Integer> fromAddresses = getPointsToSet(from);
-			HashSet<Integer> toAddresses = getPointsToSet(to);		
-			// need to check type compatibility
-			Node toStatedType = AnalysisUtilities.statedType(to);
-			if(toStatedType != null){
-				// if the from type is compatible with the compatible to type set, add it
-				for(Integer fromAddress : fromAddresses){
-					Node addressType = addressToType.get(fromAddress);
-					if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
-						// primitives may get autoboxed and would otherwise not match subtypes
-						toReceivedNewAddresses |= toAddresses.add(fromAddress);
-						serializeAlias(to, fromAddress);
-					} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
-						toReceivedNewAddresses |= toAddresses.add(fromAddress);
-						serializeAlias(to, fromAddress);
-					}
+		HashSet<Integer> fromAddresses = getPointsToSet(from);
+		HashSet<Integer> toAddresses = getPointsToSet(to);		
+		// need to check type compatibility
+		Node toStatedType = AnalysisUtilities.statedType(to);
+		if(toStatedType != null){
+			// if the from type is compatible with the compatible to type set, add it
+			for(Integer fromAddress : fromAddresses){
+				Node addressType = addressToType.get(fromAddress);
+				if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
+					// primitives may get autoboxed and would otherwise not match subtypes
+					toReceivedNewAddresses |= toAddresses.add(fromAddress);
+					serializeAlias(to, fromAddress);
+				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+					toReceivedNewAddresses |= toAddresses.add(fromAddress);
+					serializeAlias(to, fromAddress);
 				}
-			} else {
-				// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
-				Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
 			}
-//		}
+		} else {
+			// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
+			Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
+		}
 		
 		return toReceivedNewAddresses;
 	}
@@ -623,38 +601,27 @@ public class JavaPointsTo extends PointsTo {
 	 * @return
 	 */
 	private boolean transferTypeCompatibleAddressesFromArrayMemoryModel(Integer arrayReferenceAddress, Node arrayRead) {
-		
-//		AtlasSet<Node> arrayReadNodes = new AtlasHashSet<Node>();
-//		if(arrayRead.hasAttr(SCC_GROUP_ATTRIBUTE)){
-//			arrayReadNodes.addAll(Common.toQ(dfGraph).selectNode(SCC_GROUP_ATTRIBUTE, arrayRead.getAttr(SCC_GROUP_ATTRIBUTE)).eval().nodes());
-//		} else {
-//			arrayReadNodes.add(arrayRead);
-//		}
-		
 		boolean readReceivedNewAddresses = false;
-//		for(Node arrayReadNode : arrayReadNodes) {
-//			arrayRead = arrayReadNode;
-			HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
-			HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
-			// need to check type compatibility
-			Node toStatedType = AnalysisUtilities.statedType(arrayRead);
-			if(toStatedType != null){
-				// if the from type is compatible with the compatible to type set, add it
-				for(Integer fromAddress : fromAddresses){
-					Node addressType = addressToType.get(fromAddress);
-					if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
-						// primitives may get autoboxed and would otherwise not match subtypes
-						readReceivedNewAddresses |= toAddresses.add(fromAddress);
-						serializeAlias(arrayRead, fromAddress);
-					} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
-						readReceivedNewAddresses |= toAddresses.add(fromAddress);
-						serializeAlias(arrayRead, fromAddress);
-					}
+		HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
+		HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
+		// need to check type compatibility
+		Node toStatedType = AnalysisUtilities.statedType(arrayRead);
+		if(toStatedType != null){
+			// if the from type is compatible with the compatible to type set, add it
+			for(Integer fromAddress : fromAddresses){
+				Node addressType = addressToType.get(fromAddress);
+				if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
+					// primitives may get autoboxed and would otherwise not match subtypes
+					readReceivedNewAddresses |= toAddresses.add(fromAddress);
+					serializeAlias(arrayRead, fromAddress);
+				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+					readReceivedNewAddresses |= toAddresses.add(fromAddress);
+					serializeAlias(arrayRead, fromAddress);
 				}
-			} else {
-				Log.warning("No stated type during transfer for array read: " + arrayRead.address().toAddressString());
 			}
-//		}
+		} else {
+			Log.warning("No stated type during transfer for array read: " + arrayRead.address().toAddressString());
+		}
 		
 		return readReceivedNewAddresses;
 	}

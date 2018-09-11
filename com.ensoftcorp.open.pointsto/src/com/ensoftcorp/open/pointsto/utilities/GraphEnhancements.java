@@ -22,7 +22,7 @@ import com.ensoftcorp.open.pointsto.log.Log;
  * @author Ben Holland
  */
 public class GraphEnhancements {
-	
+
 	public static long tagInferredDataFlowEdges(PointsTo pointsTo){
 		long numInferredEdges = 0;
 		// blessing interprocedural invocation data flow edges with inferred tag
