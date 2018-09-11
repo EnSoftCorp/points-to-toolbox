@@ -1,7 +1,5 @@
 package com.ensoftcorp.open.pointsto.utilities;
 
-import java.util.HashSet;
-
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
@@ -41,7 +39,7 @@ public class GraphEnhancements {
 		for(Node addressedNode : pointsTo.getAddressedNodes()){
 			for(Integer address : pointsTo.getAliasAddresses(addressedNode)){
 				Node type = pointsTo.getType(address);
-				Edge runtimeTypeOfEdge = typeOfEdges.betweenStep(Common.toQ(addressedNode), Common.toQ(type)).eval().edges().getFirst();
+				Edge runtimeTypeOfEdge = typeOfEdges.betweenStep(Common.toQ(addressedNode), Common.toQ(type)).eval().edges().one();
 				if(runtimeTypeOfEdge != null){
 					runtimeTypeOfEdge.tag(PointsToAnalysis.INFERRED_TYPE_OF);
 					numEdgesAdded++;
@@ -49,26 +47,6 @@ public class GraphEnhancements {
 			}
 		}
 		return numEdgesAdded;
-	}
-	
-	public static long serializeArrayMemoryModels(PointsTo pointsTo){
-		long numMemoryModels = 0;
-		Q arrayInstantiations = Common.universe().nodesTaggedWithAny(XCSG.ArrayInstantiation);
-		for(Node arrayInstantiation : arrayInstantiations.eval().nodes()){
-			// should only have one alias address on the instantiation
-			for(Integer address : pointsTo.getAliasAddresses(arrayInstantiation)){
-				HashSet<Integer> arrayMemoryModelAliases = pointsTo.getArrayMemoryModelAliases(address);
-				for(Integer arrayMemoryModelAddress : arrayMemoryModelAliases){
-					if(arrayMemoryModelAddress == 0){
-						arrayInstantiation.tag(PointsToAnalysis.NULL_ARRAY_MEMORY_MODEL + "_ORIG_");
-					} else {
-						arrayInstantiation.tag(PointsToAnalysis.ARRAY_MEMORY_MODEL_PREFIX + "_ORIG_" + arrayMemoryModelAddress);
-					}
-					numMemoryModels++;
-				}
-			}
-		}
-		return numMemoryModels;
 	}
 	
 	public static long rewriteArrayComponents(PointsTo pointsTo){
@@ -95,7 +73,7 @@ public class GraphEnhancements {
 
 		// connect each array write to an array component
 		for(Node arrayWrite : arrayWrites){
-			Node array = arrayIdentityForEdges.predecessors(Common.toQ(arrayWrite)).eval().nodes().getFirst();
+			Node array = arrayIdentityForEdges.predecessors(Common.toQ(arrayWrite)).eval().nodes().one();
 			for(Integer address : pointsTo.getAliasAddresses(array)){
 				GraphElement arrayComponent = findOrCreateArrayComponent(pointsTo, address);
 				// create interprocedural data flow edge from array write node to array component node
@@ -109,7 +87,7 @@ public class GraphEnhancements {
 		
 		// connect each array component to an array read
 		for(Node arrayRead : arrayReads){
-			Node array = arrayIdentityForEdges.predecessors(Common.toQ(arrayRead)).eval().nodes().getFirst();
+			Node array = arrayIdentityForEdges.predecessors(Common.toQ(arrayRead)).eval().nodes().one();
 			for(Integer address : pointsTo.getAliasAddresses(array)){
 				Node arrayComponent = findOrCreateArrayComponent(pointsTo, address);
 				// create interprocedural data flow edge from array component node to array read node
@@ -148,27 +126,6 @@ public class GraphEnhancements {
 		// for array component is only ever 1 address
 		pointsTo.addAliasAddress(arrayComponent, address);
 		return arrayComponent;
-	}
-
-	/**
-	 * Converts temporary sets to tags and attributes
-	 * @return 
-	 */
-	public static long serializeAliases(PointsTo pointsTo) {
-		long numAliasesTags = 0;
-		AtlasSet<Node> addressedObjects = pointsTo.getAddressedNodes();
-		for(Node addressedObject : addressedObjects){
-			HashSet<Integer> pointsToSet = pointsTo.getAliasAddresses(addressedObject);
-			for(Integer address : pointsToSet){
-				if(address == 0){
-					addressedObject.tag(PointsToAnalysis.NULL_ALIAS + "_ORIG_");
-				} else {
-					addressedObject.tag(PointsToAnalysis.ALIAS_PREFIX + "_ORIG_" + address);
-				}
-				numAliasesTags++;
-			}
-		}
-		return numAliasesTags;
 	}
 	
 }
