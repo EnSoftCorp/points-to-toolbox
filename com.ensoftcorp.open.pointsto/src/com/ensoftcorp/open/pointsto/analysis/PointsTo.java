@@ -196,7 +196,7 @@ public abstract class PointsTo {
 		for(AtlasHashSet<Node> scc : sccList){
 			if(PointsToPreferences.isGeneralLoggingEnabled() && System.currentTimeMillis()-lastUpdateTime > PointsTo.UPDATE_INTERVAL) {
 				Log.info("Collapsing SCCs: (" + new DecimalFormat("#.##").format((progress / total) * 100.0) + " %) " 
-						+ String.format("Collapsed %s nodes and %s edges over %s SCCs.", collapsedNodeCounter, collapsedEdgeCounter, (sccGroupID-1)));
+						+ String.format("Collapsed %s SCCs (elliding %s nodes and %s edges)", (sccGroupID-1), collapsedNodeCounter, collapsedEdgeCounter));
 				lastUpdateTime = System.currentTimeMillis();
 			}
 			
@@ -270,7 +270,7 @@ public abstract class PointsTo {
 		// update the data flow graph
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		
-		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info(String.format("Collapsed %s nodes and %s edges over %s SCCs.", collapsedNodeCounter, collapsedEdgeCounter, (sccGroupID-1)));
+		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info(String.format("Collapsed %s SCCs (elliding %s nodes and %s edges)", (sccGroupID-1), collapsedNodeCounter, collapsedEdgeCounter));
 		
 		return dfGraph;
 	}
