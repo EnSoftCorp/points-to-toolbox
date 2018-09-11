@@ -107,6 +107,30 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	}
 	
 	/**
+	 * Enable/disable tracking array read/writes
+	 */
+	public static final String ARRAY_COMPONENT_TRACKING = "ARRAY_COMPONENT_TRACKING";
+	public static final Boolean ARRAY_COMPONENT_TRACKING_DEFAULT = true;
+	private static boolean arrayComponentTrackingValue = ARRAY_COMPONENT_TRACKING_DEFAULT;
+	
+	/**
+	 * Configures array read/write tracking
+	 */
+	public static void enableArrayComponentTracking(boolean enabled){
+		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		preferences.setValue(TAG_ALIASES, enabled);
+		loadPreferences();
+	}
+	
+	public static boolean isArrayComponentTrackingEnabled(){
+		if(!initialized){
+			loadPreferences();
+		}
+		return arrayComponentTrackingValue;
+	}
+	
+	
+	/**
 	 * Enable/disable tagging aliases
 	 */
 	public static final String TAG_ALIASES = "TAG_ALIASES";
@@ -251,6 +275,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		preferences.setDefault(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
 		preferences.setDefault(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
 		preferences.setDefault(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
+		preferences.setDefault(ARRAY_COMPONENT_TRACKING, ARRAY_COMPONENT_TRACKING_DEFAULT);
 		preferences.setDefault(TAG_ALIASES, TAG_ALIASES_DEFAULT);
 		preferences.setDefault(TAG_INFERRED_DATAFLOWS, TAG_INFERRED_DATAFLOWS_DEFAULT);
 		preferences.setDefault(TAG_RUNTIME_TYPES, TAG_RUNTIME_TYPES_DEFAULT);
@@ -267,6 +292,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		preferences.setValue(RUN_POINTS_TO_ANALYSIS, RUN_POINTS_TO_ANALYSIS_DEFAULT);
 		preferences.setValue(POINTS_TO_ANALYSIS_MODE, POINTS_TO_ANALYSIS_MODE_DEFAULT);
 		preferences.setValue(GENERAL_LOGGING, GENERAL_LOGGING_DEFAULT);
+		preferences.setValue(ARRAY_COMPONENT_TRACKING, ARRAY_COMPONENT_TRACKING_DEFAULT);
 		preferences.setValue(TAG_ALIASES, TAG_ALIASES_DEFAULT);
 		preferences.setValue(TAG_INFERRED_DATAFLOWS, TAG_INFERRED_DATAFLOWS_DEFAULT);
 		preferences.setValue(TAG_RUNTIME_TYPES, TAG_RUNTIME_TYPES_DEFAULT);
@@ -283,7 +309,8 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 		try {
 			IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
 			runPointsToAnalysisValue = preferences.getBoolean(RUN_POINTS_TO_ANALYSIS);
-			analysisModeValue = preferences.getString(POINTS_TO_ANALYSIS_MODE);		
+			analysisModeValue = preferences.getString(POINTS_TO_ANALYSIS_MODE);
+			arrayComponentTrackingValue = preferences.getBoolean(ARRAY_COMPONENT_TRACKING);
 			generalLoggingValue = preferences.getBoolean(GENERAL_LOGGING);
 			tagAliasesValue = preferences.getBoolean(TAG_ALIASES);
 			tagInferredDataflowsValue = preferences.getBoolean(TAG_INFERRED_DATAFLOWS);

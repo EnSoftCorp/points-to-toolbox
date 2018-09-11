@@ -18,6 +18,7 @@ import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
+import com.ensoftcorp.open.commons.algorithms.StronglyConnectedComponents;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.pointsto.log.Log;
 import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
@@ -40,6 +41,10 @@ public class JimplePointsTo extends PointsTo {
 	 * Attribute key name for node points-to sets
 	 */
 	private static final String POINTS_TO_SET = "jimple-points-to-set";
+	
+	private static final String SCC_GROUP_ATTRIBUTE = "SCC_GROUP";
+	
+	private long lastUpdateTime = 0;
 	
 	/**
 	 * Gets or creates the points to set for a graph element.
@@ -76,12 +81,27 @@ public class JimplePointsTo extends PointsTo {
 	
 	@Override
 	public void addAliasAddress(Node node, Integer address) {
+		if(isDisposed){
+			throw new RuntimeException("Points-to analysis was disposed.");
+		}
 		getPointsToSet(node).add(address);
 	}
 
 	@Override
 	public void removeAliasAddress(Node node, Integer address) {
+		if(isDisposed){
+			throw new RuntimeException("Points-to analysis was disposed.");
+		}
 		getPointsToSet(node).remove(address);
+	}
+	
+	@Override
+	public HashSet<Integer> getAliasAddresses() {
+		HashSet<Integer> result = new HashSet<Integer>();
+		for(int i=NULL_TYPE_ADDRESS; i<=addressFactory.peekCurrentAddress(); i++) {
+			result.add(i);
+		}
+		return result;
 	}
 	
 	@Override
@@ -228,7 +248,18 @@ public class JimplePointsTo extends PointsTo {
 			Q literalInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Literal);
 			newRefs = newRefs.union(literalInstantiations);
 		}
-		for(Node newRef : newRefs.eval().nodes()){
+		
+		AtlasSet<Node> newRefNodes = newRefs.eval().nodes();
+		long newRefNodesSize = newRefNodes.size();
+		long newRefNodesSeeded = 0;
+		
+		for(Node newRef : newRefNodes){
+			
+			if(PointsToPreferences.isGeneralLoggingEnabled() && System.currentTimeMillis()-lastUpdateTime > PointsTo.UPDATE_INTERVAL) {
+				Log.info("Seeding Frontier: " + newRefNodesSeeded + "/" + newRefNodesSize);
+				lastUpdateTime = System.currentTimeMillis();
+			}
+			
 			Node statedType = AnalysisUtilities.statedType(newRef);
 			if(statedType != null){
 				// create a new address for the reference and add a  
@@ -238,6 +269,7 @@ public class JimplePointsTo extends PointsTo {
 					address = addressFactory.getNewAddress();
 				}
 				getPointsToSet(newRef).add(address);
+				serializeAlias(newRef, address);
 				addressToInstantiation.put(address, newRef);
 				addressToType.put(address, statedType);
 				
@@ -277,6 +309,8 @@ public class JimplePointsTo extends PointsTo {
 				}
 			}
 		}
+		
+		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Tracking " + newRefNodesSize + " object aliases.");
 	}
 
 	/**
@@ -308,6 +342,8 @@ public class JimplePointsTo extends PointsTo {
 	 */
 	@Override
 	protected void runAnalysis() {
+		lastUpdateTime = System.currentTimeMillis();
+		
 		// seed the frontier with the set of instantiations
 		seedFrontier();
 		
@@ -326,6 +362,17 @@ public class JimplePointsTo extends PointsTo {
 			dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		}
 		
+		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Computing SCCs...");
+		int sccGroupID = 0;
+		StronglyConnectedComponents sccs = new StronglyConnectedComponents(dfGraph);
+		for(AtlasHashSet<Node> scc : sccs.findSCCs()){
+			for(Node node : scc){
+				node.putAttr(SCC_GROUP_ATTRIBUTE, new Integer(sccGroupID));
+			}
+			sccGroupID++;
+		}
+		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Finished Computing SCCs.");
+		
 		// create graphs and sets for resolving dynamic dispatches
 		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
 		Graph dfInvokeThisGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.IdentityPassedTo)).eval();
@@ -337,7 +384,13 @@ public class JimplePointsTo extends PointsTo {
 		AtlasSet<Node> arrayReferences = arrayIdentityFor.predecessors(arrayAccess).eval().nodes();
 		
 		// iteratively propagate points-to information until a fixed point is reached
+		long iteration = 0;
 		while(frontier.hasNext()){
+			if(PointsToPreferences.isGeneralLoggingEnabled() && System.currentTimeMillis()-lastUpdateTime > PointsTo.UPDATE_INTERVAL) {
+				Log.info("Propagating Points-to Sets: Iteration: " + iteration + ", Frontier Size: " + frontier.size());
+				lastUpdateTime = System.currentTimeMillis();
+			}
+			
 			// remove the next node from the frontier to start propagating type information from
 			Node from = frontier.next();
 			AtlasSet<Edge> outEdges = dfGraph.edges(from, NodeDirection.OUT);
@@ -429,7 +482,11 @@ public class JimplePointsTo extends PointsTo {
 						for(Node arrayRead : AnalysisUtilities.getArrayReadAccessesForArrayReference(to)){
 							for(Integer arrayReferenceAddress : getPointsToSet(to)){
 								try {
-									if(getPointsToSet(arrayRead).addAll(arrayMemoryModel.get(arrayReferenceAddress))){
+									HashSet<Integer> arrayMemoryModelAddresses = arrayMemoryModel.get(arrayReferenceAddress);
+									if(getPointsToSet(arrayRead).addAll(arrayMemoryModelAddresses)){
+										for(Integer arrayMemorymodelAddress : arrayMemoryModelAddresses) {
+											serializeAlias(arrayRead, arrayMemorymodelAddress);
+										}
 										frontier.add(arrayRead);
 									}
 								} catch (Exception e){
@@ -443,6 +500,7 @@ public class JimplePointsTo extends PointsTo {
 					}
 				}
 			}
+			iteration++;
 		}
 	}
 	
@@ -497,23 +555,35 @@ public class JimplePointsTo extends PointsTo {
 	 * @return Returns true iff new addresses were transfered, false otherwise
 	 */
 	private boolean transferTypeCompatibleAddresses(Node from, Node to){
-		boolean toReceivedNewAddresses = false;
-		HashSet<Integer> fromAddresses = getPointsToSet(from);
-		HashSet<Integer> toAddresses = getPointsToSet(to);		
-		// need to check type compatibility
-		Node toStatedType = AnalysisUtilities.statedType(to);
-		if(toStatedType != null){
-			// if the from type is compatible with the compatible to type set, add it
-			for(Integer fromAddress : fromAddresses){
-				Node addressType = addressToType.get(fromAddress);
-				if (subtypes.isSubtypeOf(addressType, toStatedType)) {
-					toReceivedNewAddresses |= toAddresses.add(fromAddress);
-				}
-			}
+		AtlasSet<Node> toNodes = new AtlasHashSet<Node>();
+		if(to.hasAttr(SCC_GROUP_ATTRIBUTE)){
+			toNodes.addAll(Common.toQ(dfGraph).selectNode(SCC_GROUP_ATTRIBUTE, to.getAttr(SCC_GROUP_ATTRIBUTE)).eval().nodes());
 		} else {
-			// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
-			Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
+			toNodes.add(to);
 		}
+		
+		boolean toReceivedNewAddresses = false;
+		for(Node toNode : toNodes) {
+			to = toNode;
+			HashSet<Integer> fromAddresses = getPointsToSet(from);
+			HashSet<Integer> toAddresses = getPointsToSet(to);		
+			// need to check type compatibility
+			Node toStatedType = AnalysisUtilities.statedType(to);
+			if(toStatedType != null){
+				// if the from type is compatible with the compatible to type set, add it
+				for(Integer fromAddress : fromAddresses){
+					Node addressType = addressToType.get(fromAddress);
+					if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+						toReceivedNewAddresses |= toAddresses.add(fromAddress);
+						serializeAlias(to, fromAddress);
+					}
+				}
+			} else {
+				// DEBUG: show(Common.toQ(com.ensoftcorp.atlas.core.db.graph.Graph.U.nodes().getAt(java.lang.Integer.valueOf(<address>, 16).IntegerValue())))
+				Log.warning("No stated type during transfer for ref: " + to.address().toAddressString());
+			}
+		}
+		
 		return toReceivedNewAddresses;
 	}
 	
@@ -568,22 +638,36 @@ public class JimplePointsTo extends PointsTo {
 	 * @return
 	 */
 	private boolean transferTypeCompatibleAddressesFromArrayMemoryModel(Integer arrayReferenceAddress, Node arrayRead) {
-		boolean readReceivedNewAddresses = false;
-		HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
-		HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
-		// need to check type compatibility
-		Node toStatedType = AnalysisUtilities.statedType(arrayRead);
-		if(toStatedType != null){
-			// if the from type is compatible with the compatible to type set, add it
-			for(Integer fromAddress : fromAddresses){
-				Node addressType = addressToType.get(fromAddress);
-				if (subtypes.isSubtypeOf(addressType, toStatedType)) {
-					readReceivedNewAddresses |= toAddresses.add(fromAddress);
-				}
-			}
+		
+		AtlasSet<Node> arrayReadNodes = new AtlasHashSet<Node>();
+		if(arrayRead.hasAttr(SCC_GROUP_ATTRIBUTE)){
+			arrayReadNodes.addAll(Common.toQ(dfGraph).selectNode(SCC_GROUP_ATTRIBUTE, arrayRead.getAttr(SCC_GROUP_ATTRIBUTE)).eval().nodes());
 		} else {
-			Log.warning("No stated type during transfer for array read: " + arrayRead.address().toAddressString());
+			arrayReadNodes.add(arrayRead);
 		}
+		
+		boolean readReceivedNewAddresses = false;
+		
+		for(Node arrayReadNode : arrayReadNodes) {
+			arrayRead = arrayReadNode;
+			HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
+			HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
+			// need to check type compatibility
+			Node toStatedType = AnalysisUtilities.statedType(arrayRead);
+			if(toStatedType != null){
+				// if the from type is compatible with the compatible to type set, add it
+				for(Integer fromAddress : fromAddresses){
+					Node addressType = addressToType.get(fromAddress);
+					if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+						readReceivedNewAddresses |= toAddresses.add(fromAddress);
+						serializeAlias(arrayRead, fromAddress);
+					}
+				}
+			} else {
+				Log.warning("No stated type during transfer for array read: " + arrayRead.address().toAddressString());
+			}
+		}
+		
 		return readReceivedNewAddresses;
 	}
 	

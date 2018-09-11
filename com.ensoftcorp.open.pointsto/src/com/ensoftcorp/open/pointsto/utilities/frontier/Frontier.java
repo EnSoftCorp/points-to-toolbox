@@ -39,4 +39,10 @@ public interface Frontier<E> {
 	 */
 	@Override
 	public String toString();
+	
+	/**
+	 * Returns the number of elements on the frontier
+	 * @return
+	 */
+	public long size();
 }

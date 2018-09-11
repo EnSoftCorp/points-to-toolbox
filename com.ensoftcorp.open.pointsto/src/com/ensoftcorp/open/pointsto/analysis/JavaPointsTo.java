@@ -45,6 +45,8 @@ public class JavaPointsTo extends PointsTo {
 	
 	private static final String SCC_GROUP_ATTRIBUTE = "SCC_GROUP";
 	
+	private long lastUpdateTime = 0;
+	
 	/**
 	 * Gets or creates the points to set for a graph element.
 	 * Returns a reference to the points to set so that updates to the 
@@ -80,12 +82,27 @@ public class JavaPointsTo extends PointsTo {
 	
 	@Override
 	public void addAliasAddress(Node node, Integer address) {
+		if(isDisposed){
+			throw new RuntimeException("Points-to analysis was disposed.");
+		}
 		getPointsToSet(node).add(address);
 	}
 
 	@Override
 	public void removeAliasAddress(Node node, Integer address) {
+		if(isDisposed){
+			throw new RuntimeException("Points-to analysis was disposed.");
+		}
 		getPointsToSet(node).remove(address);
+	}
+	
+	@Override
+	public HashSet<Integer> getAliasAddresses() {
+		HashSet<Integer> result = new HashSet<Integer>();
+		for(int i=NULL_TYPE_ADDRESS; i<=addressFactory.peekCurrentAddress(); i++) {
+			result.add(i);
+		}
+		return result;
 	}
 	
 	@Override
@@ -240,7 +257,16 @@ public class JavaPointsTo extends PointsTo {
 		
 		// create unique addresses for types of new statements and array instantiations
 		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).union(specialInstantiations);
-		for(Node newRef : newRefs.eval().nodes()){
+		AtlasSet<Node> newRefNodes = newRefs.eval().nodes();
+		long newRefNodesSize = newRefNodes.size();
+		long newRefNodesSeeded = 0;
+		for(Node newRef : newRefNodes){
+			
+			if(PointsToPreferences.isGeneralLoggingEnabled() && System.currentTimeMillis()-lastUpdateTime > PointsTo.UPDATE_INTERVAL) {
+				Log.info("Seeding Frontier: " + newRefNodesSeeded + "/" + newRefNodesSize);
+				lastUpdateTime = System.currentTimeMillis();
+			}
+			
 			Node statedType = AnalysisUtilities.statedType(newRef);
 			if(statedType != null){
 				// create a new address for the reference and add a  
@@ -250,6 +276,7 @@ public class JavaPointsTo extends PointsTo {
 					address = addressFactory.getNewAddress();
 				}
 				getPointsToSet(newRef).add(address);
+				serializeAlias(newRef, address);
 				addressToInstantiation.put(address, newRef);
 				addressToType.put(address, statedType);
 				
@@ -288,7 +315,10 @@ public class JavaPointsTo extends PointsTo {
 					Log.warning("No stated type during initialization for Object: " + newRef.address().toAddressString());
 				}
 			}
+			newRefNodesSeeded++;
 		}
+		
+		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Tracking " + newRefNodesSize + " object aliases.");
 	}
 
 	/**
@@ -320,6 +350,8 @@ public class JavaPointsTo extends PointsTo {
 	 */
 	@Override
 	protected void runAnalysis() {
+		lastUpdateTime = System.currentTimeMillis();
+		
 		// seed the frontier with the set of instantiations
 		seedFrontier();
 		
@@ -332,7 +364,7 @@ public class JavaPointsTo extends PointsTo {
 		dfNodes.addAll(conservativeDF.eval().nodes());
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		
-		
+		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Computing SCCs...");
 		int sccGroupID = 0;
 		StronglyConnectedComponents sccs = new StronglyConnectedComponents(dfGraph);
 		for(AtlasHashSet<Node> scc : sccs.findSCCs()){
@@ -341,6 +373,7 @@ public class JavaPointsTo extends PointsTo {
 			}
 			sccGroupID++;
 		}
+		if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Finished Computing SCCs.");
 		
 		// create graphs and sets for resolving dynamic dispatches
 		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
@@ -353,7 +386,13 @@ public class JavaPointsTo extends PointsTo {
 		AtlasSet<Node> arrayReferences = arrayIdentityFor.predecessors(arrayAccess).eval().nodes();
 		
 		// iteratively propagate points-to information until a fixed point is reached
+		long iteration = 0;
 		while(frontier.hasNext()){
+			if(PointsToPreferences.isGeneralLoggingEnabled() && System.currentTimeMillis()-lastUpdateTime > PointsTo.UPDATE_INTERVAL) {
+				Log.info("Propagating Points-to Sets: Iteration: " + iteration + ", Frontier Size: " + frontier.size());
+				lastUpdateTime = System.currentTimeMillis();
+			}
+			
 			// remove the next node from the frontier to start propagating type information from
 			Node from = frontier.next();
 			AtlasSet<Edge> outEdges = dfGraph.edges(from, NodeDirection.OUT);
@@ -445,7 +484,11 @@ public class JavaPointsTo extends PointsTo {
 						for(Node arrayRead : AnalysisUtilities.getArrayReadAccessesForArrayReference(to)){
 							for(Integer arrayReferenceAddress : getPointsToSet(to)){
 								try {
-									if(getPointsToSet(arrayRead).addAll(arrayMemoryModel.get(arrayReferenceAddress))){
+									HashSet<Integer> arrayMemoryModelAddresses = arrayMemoryModel.get(arrayReferenceAddress);
+									if(getPointsToSet(arrayRead).addAll(arrayMemoryModelAddresses)){
+										for(Integer arrayMemorymodelAddress : arrayMemoryModelAddresses) {
+											serializeAlias(arrayRead, arrayMemorymodelAddress);
+										}
 										frontier.add(arrayRead);
 									}
 								} catch (Exception e){
@@ -459,6 +502,7 @@ public class JavaPointsTo extends PointsTo {
 					}
 				}
 			}
+			iteration++;
 		}
 	}
 	
@@ -495,8 +539,10 @@ public class JavaPointsTo extends PointsTo {
 					if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
 						// primitives may get autoboxed and would otherwise not match subtypes
 						toReceivedNewAddresses |= toAddresses.add(fromAddress);
+						serializeAlias(to, fromAddress);
 					} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
 						toReceivedNewAddresses |= toAddresses.add(fromAddress);
+						serializeAlias(to, fromAddress);
 					}
 				}
 			} else {
@@ -559,25 +605,39 @@ public class JavaPointsTo extends PointsTo {
 	 * @return
 	 */
 	private boolean transferTypeCompatibleAddressesFromArrayMemoryModel(Integer arrayReferenceAddress, Node arrayRead) {
-		boolean readReceivedNewAddresses = false;
-		HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
-		HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
-		// need to check type compatibility
-		Node toStatedType = AnalysisUtilities.statedType(arrayRead);
-		if(toStatedType != null){
-			// if the from type is compatible with the compatible to type set, add it
-			for(Integer fromAddress : fromAddresses){
-				Node addressType = addressToType.get(fromAddress);
-				if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
-					// primitives may get autoboxed and would otherwise not match subtypes
-					readReceivedNewAddresses |= toAddresses.add(fromAddress);
-				} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
-					readReceivedNewAddresses |= toAddresses.add(fromAddress);
-				}
-			}
+		
+		AtlasSet<Node> arrayReadNodes = new AtlasHashSet<Node>();
+		if(arrayRead.hasAttr(SCC_GROUP_ATTRIBUTE)){
+			arrayReadNodes.addAll(Common.toQ(dfGraph).selectNode(SCC_GROUP_ATTRIBUTE, arrayRead.getAttr(SCC_GROUP_ATTRIBUTE)).eval().nodes());
 		} else {
-			Log.warning("No stated type during transfer for array read: " + arrayRead.address().toAddressString());
+			arrayReadNodes.add(arrayRead);
 		}
+		
+		boolean readReceivedNewAddresses = false;
+		for(Node arrayReadNode : arrayReadNodes) {
+			arrayRead = arrayReadNode;
+			HashSet<Integer> fromAddresses = arrayMemoryModel.get(arrayReferenceAddress);
+			HashSet<Integer> toAddresses = getPointsToSet(arrayRead);		
+			// need to check type compatibility
+			Node toStatedType = AnalysisUtilities.statedType(arrayRead);
+			if(toStatedType != null){
+				// if the from type is compatible with the compatible to type set, add it
+				for(Integer fromAddress : fromAddresses){
+					Node addressType = addressToType.get(fromAddress);
+					if(PointsToPreferences.isTrackPrimitivesEnabled() && addressType.taggedWith(XCSG.Primitive) && PrimitiveAnalysis.isBoxablePrimitiveType(addressType)){
+						// primitives may get autoboxed and would otherwise not match subtypes
+						readReceivedNewAddresses |= toAddresses.add(fromAddress);
+						serializeAlias(arrayRead, fromAddress);
+					} else if (subtypes.isSubtypeOf(addressType, toStatedType)) {
+						readReceivedNewAddresses |= toAddresses.add(fromAddress);
+						serializeAlias(arrayRead, fromAddress);
+					}
+				}
+			} else {
+				Log.warning("No stated type during transfer for array read: " + arrayRead.address().toAddressString());
+			}
+		}
+		
 		return readReceivedNewAddresses;
 	}
 	

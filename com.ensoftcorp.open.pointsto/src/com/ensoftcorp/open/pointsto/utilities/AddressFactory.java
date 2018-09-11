@@ -16,4 +16,8 @@ public class AddressFactory {
 		return address++;
 	}
 	
+	public int peekCurrentAddress(){
+		return address;
+	}
+	
 }

@@ -6,7 +6,9 @@ import java.util.HashSet;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
+import com.ensoftcorp.open.pointsto.common.PointsToAnalysis;
 import com.ensoftcorp.open.pointsto.log.Log;
+import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
 
 /**
  * An abstract class defining the features that a points-to analyzer should
@@ -18,6 +20,8 @@ public abstract class PointsTo {
 	
 	private boolean hasRun = false;
 	protected boolean isDisposed = false;
+	
+	public static final long UPDATE_INTERVAL = 5000; // 5 seconds
 	
 	/**
 	 * Returns true if the points-to analysis has completed
@@ -43,9 +47,25 @@ public abstract class PointsTo {
 			long start = System.nanoTime();
 			runAnalysis();
 			long stop = System.nanoTime();
-			double time = (stop - start)/1000.0/1000.0;
 			DecimalFormat decimalFormat = new DecimalFormat("#.##");
-			Log.info("Finished " + getClass().getSimpleName() + " points-to analysis in " + decimalFormat.format(time) + "ms");
+			double time = (stop - start)/1000.0/1000.0; // ms
+			if(time < 100) {
+				Log.info("Finished " + getClass().getSimpleName() + " points-to analysis in " + decimalFormat.format(time) + "ms");
+			} else {
+				time = (stop - start)/1000.0/1000.0/1000.0; // s
+				if(time < 60) {
+					Log.info("Finished " + getClass().getSimpleName() + " points-to analysis in " + decimalFormat.format(time) + "s");
+				} else {
+					time = (stop - start)/1000.0/1000.0/1000.0/60.0; // m
+					if(time < 60) {
+						Log.info("Finished " + getClass().getSimpleName() + " points-to analysis in " + decimalFormat.format(time) + "m");
+					} else {
+						time = (stop - start)/1000.0/1000.0/1000.0/60.0/60.0; // h
+						Log.info("Finished " + getClass().getSimpleName() + " points-to analysis in " + decimalFormat.format(time) + "h");
+					}
+				}
+			}
+			
 			hasRun = true;
 			return time;
 		}
@@ -70,6 +90,13 @@ public abstract class PointsTo {
 	
 	/**
 	 * Returns a set of alias addresses
+	 * @param node
+	 * @return
+	 */
+	public abstract HashSet<Integer> getAliasAddresses();
+	
+	/**
+	 * Returns a set of alias addresses for the given node
 	 * @param node
 	 * @return
 	 */
@@ -119,5 +146,20 @@ public abstract class PointsTo {
 	 * Signals that the points to analysis results no longer need to be maintained by the analysis
 	 */
 	public abstract void dispose();
+	
+	/**
+	 * Helper method to consistently convert integer based addresses to alias tags
+	 * @param addressedObject
+	 * @param address
+	 */
+	protected void serializeAlias(Node addressedObject, Integer address) {
+		if(PointsToPreferences.isTagAliasesEnabled()){
+			if(address == 0){
+				addressedObject.tag(PointsToAnalysis.NULL_ALIAS);
+			} else {
+				addressedObject.tag(PointsToAnalysis.ALIAS_PREFIX + address);
+			}
+		}
+	}
 	
 }

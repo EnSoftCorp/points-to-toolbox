@@ -60,9 +60,9 @@ public class GraphEnhancements {
 				HashSet<Integer> arrayMemoryModelAliases = pointsTo.getArrayMemoryModelAliases(address);
 				for(Integer arrayMemoryModelAddress : arrayMemoryModelAliases){
 					if(arrayMemoryModelAddress == 0){
-						arrayInstantiation.tag(PointsToAnalysis.NULL_ARRAY_MEMORY_MODEL);
+						arrayInstantiation.tag(PointsToAnalysis.NULL_ARRAY_MEMORY_MODEL + "_ORIG_");
 					} else {
-						arrayInstantiation.tag(PointsToAnalysis.ARRAY_MEMORY_MODEL_PREFIX + arrayMemoryModelAddress);
+						arrayInstantiation.tag(PointsToAnalysis.ARRAY_MEMORY_MODEL_PREFIX + "_ORIG_" + arrayMemoryModelAddress);
 					}
 					numMemoryModels++;
 				}
@@ -161,9 +161,9 @@ public class GraphEnhancements {
 			HashSet<Integer> pointsToSet = pointsTo.getAliasAddresses(addressedObject);
 			for(Integer address : pointsToSet){
 				if(address == 0){
-					addressedObject.tag(PointsToAnalysis.NULL_ALIAS);
+					addressedObject.tag(PointsToAnalysis.NULL_ALIAS + "_ORIG_");
 				} else {
-					addressedObject.tag(PointsToAnalysis.ALIAS_PREFIX + address);
+					addressedObject.tag(PointsToAnalysis.ALIAS_PREFIX + "_ORIG_" + address);
 				}
 				numAliasesTags++;
 			}

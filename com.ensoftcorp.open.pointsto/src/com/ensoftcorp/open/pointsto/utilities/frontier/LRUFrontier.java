@@ -71,7 +71,7 @@ public class LRUFrontier<E> implements Frontier<E> {
 	 * 
 	 * @return
 	 */
-	public int size() {
+	public long size() {
 		return frontier.size();
 	}
 

@@ -51,15 +51,7 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 				}
 				
 				// make some graph enhancements
-				if(pointsToAnalysis != null){					
-					if(PointsToPreferences.isTagAliasesEnabled()){
-						long numMemoryModels = GraphEnhancements.serializeArrayMemoryModels(pointsToAnalysis);
-						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numMemoryModels + " array memory model tags.");
-						
-						long numTaggedAliases = GraphEnhancements.serializeAliases(pointsToAnalysis);
-						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Applied " + numTaggedAliases + " aliasing tags.");
-					}
-					
+				if(pointsToAnalysis != null) {				
 					if(PointsToPreferences.isRewriteArrayComponentsEnabled()){
 						long numArrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes().size();
 						long numRewrittenArrayComponents = GraphEnhancements.rewriteArrayComponents(pointsToAnalysis);

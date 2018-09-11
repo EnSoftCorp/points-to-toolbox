@@ -26,6 +26,7 @@ public class PointsToPreferencesPage extends FieldEditorPreferencePage implement
 	private static final String JAVA_POINTS_TO_ANALYSIS_MODE_DESCRIPTION = "Enable Java source points-to analysis (beta)";
 	
 	private static final String GENERAL_LOGGING_DESCRIPTION = "Enable general logging";
+	private static final String ARRAY_COMPONENT_TRACKING_DESCRIPTION = "Track Array Component Read/Writes (expensive)";
 	private static final String TAG_ALIASES_DESCRIPTION = "Tag aliases";
 	private static final String TAG_INFERRED_DATAFLOWS_DESCRIPTION = "Tag inferred dataflows";
 	private static final String TAG_RUNTIME_TYPES_DESCRIPTION = "Tag runtime types";
@@ -78,14 +79,16 @@ public class PointsToPreferencesPage extends FieldEditorPreferencePage implement
 		addField(analysisMode);
 		
 		addField(new SpacerFieldEditor(getFieldEditorParent()));
-		addField(new LabelFieldEditor("Advanced Options", getFieldEditorParent()));
+		addField(new LabelFieldEditor("Advanced Analysis Options", getFieldEditorParent()));
 		addField(new BooleanFieldEditor(PointsToPreferences.GENERAL_LOGGING, "&" + GENERAL_LOGGING_DESCRIPTION, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PointsToPreferences.ARRAY_COMPONENT_TRACKING, "&" + ARRAY_COMPONENT_TRACKING_DESCRIPTION, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PointsToPreferences.TRACK_PRIMITIVES, "&" + TRACK_PRIMITIVES_DESCRIPTION, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PointsToPreferences.DISPOSE_RESOURCES, "&" + DISPOSE_RESOURCES_DESCRIPTION, getFieldEditorParent()));
+		addField(new LabelFieldEditor("Graph Enhancements", getFieldEditorParent()));
 		addField(new BooleanFieldEditor(PointsToPreferences.TAG_ALIASES, "&" + TAG_ALIASES_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(PointsToPreferences.TAG_INFERRED_DATAFLOWS, "&" + TAG_INFERRED_DATAFLOWS_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(PointsToPreferences.TAG_RUNTIME_TYPES, "&" + TAG_RUNTIME_TYPES_DESCRIPTION, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(PointsToPreferences.REWRITE_ARRAY_COMPONENTS, "&" + REWRITE_ARRAYS_DESCRIPTION, getFieldEditorParent()));
-		addField(new BooleanFieldEditor(PointsToPreferences.DISPOSE_RESOURCES, "&" + DISPOSE_RESOURCES_DESCRIPTION, getFieldEditorParent()));
-		addField(new BooleanFieldEditor(PointsToPreferences.TRACK_PRIMITIVES, "&" + TRACK_PRIMITIVES_DESCRIPTION, getFieldEditorParent()));
 	}
 
 }
