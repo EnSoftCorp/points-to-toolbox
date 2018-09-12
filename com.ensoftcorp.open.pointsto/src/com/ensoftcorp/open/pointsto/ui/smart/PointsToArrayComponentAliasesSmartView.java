@@ -20,6 +20,7 @@ import com.ensoftcorp.atlas.ui.scripts.util.SimpleScriptUtil;
 import com.ensoftcorp.atlas.ui.selection.event.FrontierEdgeExploreEvent;
 import com.ensoftcorp.atlas.ui.selection.event.IAtlasSelectionEvent;
 import com.ensoftcorp.open.pointsto.common.PointsToAnalysis;
+import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
 
 public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartViewScript implements IResizableScript, IExplorableScript {
 
@@ -47,14 +48,23 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 	public FrontierStyledResult evaluate(IAtlasSelectionEvent event, int reverse, int forward) {
 		Q filteredSelection = filter(event.getSelection());
 		
+		boolean useInferredDataFlow = PointsToPreferences.isTagInferredDataflowsEnabled();
+		
 		AtlasSet<GraphElement> arrayComponentsSet = new AtlasHashSet<GraphElement>();
 		AtlasSet<GraphElement> arrayComponentsInstantiationSet = new AtlasHashSet<GraphElement>();
+		AtlasSet<Node> aliasNodes = new AtlasHashSet<Node>();
 		for(Node node : filteredSelection.eval().nodes()){
 			Q aliases = PointsToAnalysis.getAliases(node);
+			if(!useInferredDataFlow) {
+				aliasNodes.addAll(aliases.eval().nodes());
+			}
 			arrayComponentsSet.addAll(aliases.nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes());
 			Q aliasedArrayInstantiations = aliases.nodesTaggedWithAny(XCSG.ArrayInstantiation);
 			for(Node aliasedArrayInstantiation : aliasedArrayInstantiations.eval().nodes()){
 				Q arrayComponentAliases = Common.toQ(PointsToAnalysis.getArrayMemoryModelAliases(aliasedArrayInstantiation));
+				if(!useInferredDataFlow) {
+					aliasNodes.addAll(arrayComponentAliases.eval().nodes());
+				}
 				Q arrayComponentInstantiations = arrayComponentAliases.nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation);
 				arrayComponentsInstantiationSet.addAll(arrayComponentInstantiations.eval().nodes());
 			}
@@ -62,6 +72,15 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 		Q arrayComponents = Common.toQ(arrayComponentsSet);
 		Q arrayComponentInstantiations = Common.toQ(arrayComponentsInstantiationSet);
 
+		Q inferredDF;
+		if(useInferredDataFlow) {
+			// this is easier to work with
+			inferredDF = Common.universe().edges(PointsToAnalysis.INFERRED_DATA_FLOW);
+		} else {
+			// however if tagging was turned off we could fall back to inducing the edges from regular data flow
+			inferredDF = Common.toQ(aliasNodes).induce(Common.universe().edges(XCSG.DataFlow_Edge));
+		}
+		
 		Highlighter h = new Highlighter();
 		h.highlight(arrayComponents, Color.YELLOW);
 		h.highlight(arrayComponentInstantiations, Color.RED);
@@ -72,8 +91,7 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 		// by default the data flow edges are not shown until forward/backward
 		// steps are increased. Union instantiations in, for null's since they
 		// won't have a between edge
-		Q inferredDF = Common.universe().edgesTaggedWithAny(PointsToAnalysis.INFERRED_DATA_FLOW);
-		Q between = inferredDF.forward(arrayComponentInstantiations).intersection(inferredDF.reverse(arrayComponents));
+		Q between = inferredDF.between(arrayComponentInstantiations, arrayComponents);
 		Q completeResult = arrayComponents.union(arrayComponentInstantiations).union(between);
 		
 		// compute what to show for current steps

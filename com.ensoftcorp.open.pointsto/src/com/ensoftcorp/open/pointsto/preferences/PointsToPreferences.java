@@ -18,7 +18,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	private static boolean runPointsToAnalysisValue = RUN_POINTS_TO_ANALYSIS_DEFAULT;
 	
 	/**
-	 * Configures whether or not immutability analysis should be run
+	 * Configures whether or not points-to analysis should be run
 	 */
 	public static void enabledPointsToAnalysis(boolean enabled){
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
@@ -255,7 +255,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	 * Enable/disable tagging inferred dataflows
 	 */
 	public static final String TAG_INFERRED_DATAFLOWS = "TAG_INFERRED_DATAFLOWS";
-	public static final Boolean TAG_INFERRED_DATAFLOWS_DEFAULT = true;
+	public static final Boolean TAG_INFERRED_DATAFLOWS_DEFAULT = false;
 	private static boolean tagInferredDataflowsValue = TAG_INFERRED_DATAFLOWS_DEFAULT;
 	
 	/**
@@ -325,7 +325,7 @@ public class PointsToPreferences extends AbstractPreferenceInitializer {
 	 * Enable/disable tagging of runtime types
 	 */
 	public static final String TAG_RUNTIME_TYPES = "TAG_RUNTIME_TYPES";
-	public static final Boolean TAG_RUNTIME_TYPES_DEFAULT = true;
+	public static final Boolean TAG_RUNTIME_TYPES_DEFAULT = false;
 	private static boolean tagRuntimeTypesValue = TAG_RUNTIME_TYPES_DEFAULT;
 	
 	/**

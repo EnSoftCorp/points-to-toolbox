@@ -26,17 +26,17 @@ public class PointsToPreferencesPage extends FieldEditorPreferencePage implement
 	private static final String JAVA_POINTS_TO_ANALYSIS_MODE_DESCRIPTION = "Enable Java source points-to analysis";
 	
 	private static final String GENERAL_LOGGING_DESCRIPTION = "Enable general logging";
-	private static final String COLLAPSE_SCCS_DESCRIPTION = "Collapse SCCs";
 	private static final String POINTS_TO_ANALYSIS_FIFO_FRONTIER_MODE_DESCRIPTION = "Process the frontier using a FIFO (first in, first out) strategy";
 	private static final String POINTS_TO_ANALYSIS_LIFO_FRONTIER_MODE_DESCRIPTION = "Process the frontier using a LIFO (last in, last out) strategy";
 	private static final String POINTS_TO_ANALYSIS_LRU_FRONTIER_MODE_DESCRIPTION = "Process the frontier using a LRU (least recently used) strategy";
-	private static final String ARRAY_COMPONENT_TRACKING_DESCRIPTION = "Track Array Component Read/Writes (expensive)";
+	private static final String ARRAY_COMPONENT_TRACKING_DESCRIPTION = "Track Array Component Read/Writes (increases precision / expensive)";
+	private static final String COLLAPSE_SCCS_DESCRIPTION = "Collapse SCCs (optimization / may lose type precision)";
 	private static final String TAG_ALIASES_DESCRIPTION = "Tag aliases";
-	private static final String TAG_INFERRED_DATAFLOWS_DESCRIPTION = "Tag inferred dataflows";
-	private static final String TAG_RUNTIME_TYPES_DESCRIPTION = "Tag runtime types";
+	private static final String TAG_INFERRED_DATAFLOWS_DESCRIPTION = "Tag inferred dataflows (expensive)";
+	private static final String TAG_RUNTIME_TYPES_DESCRIPTION = "Tag runtime types (expensive)";
 	private static final String REWRITE_ARRAYS_DESCRIPTION = "Rewrite array components (requires array component tracking)";
-	private static final String DISPOSE_RESOURCES_DESCRIPTION = "Dispose backing points-to analysis resources";
-	private static final String TRACK_PRIMITIVES_DESCRIPTION = "Track primitive values (expensive)";
+	private static final String DISPOSE_RESOURCES_DESCRIPTION = "Dispose backing points-to analysis resources (recommended)";
+	private static final String TRACK_PRIMITIVES_DESCRIPTION = "Track primitives (very expensive)";
 	
 	private static boolean changeListenerAdded = false;
 
