@@ -79,8 +79,6 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Disposing temporary resources...");
 						pointsToAnalysis.dispose();
 					}
-				} else {
-					throw new IllegalArgumentException("Points-to analysis was enabled with an invalid analysis mode.");
 				}
 			}
 		} catch (Exception e) {
