@@ -251,7 +251,7 @@ public class JavaPointsTo extends PointsTo {
 	private void seedFrontier() {
 		// set the first address (address 0) to be the null type
 		// technically there is no instantiation of null, but it can be useful to treat is as one
-		Node nullType = Query.universe().nodes(XCSG.Java.NullType).eval().nodes().getFirst();
+		Node nullType = Query.universe().nodes(XCSG.Java.NullType).eval().nodes().one();
 		addressToInstantiation.put(NULL_TYPE_ADDRESS, nullType);
 		addressToType.put(NULL_TYPE_ADDRESS, nullType);
 		
@@ -301,7 +301,7 @@ public class JavaPointsTo extends PointsTo {
 				if(PointsToPreferences.isArrayComponentTrackingEnabled() && statedType.hasAttr(Attr.Node.DIMENSION)){
 					Node arrayType = statedType;
 					int arrayDimension = (int) arrayType.getAttr(Attr.Node.DIMENSION);
-					Node arrayElementType = Query.universe().edges(XCSG.ArrayElementType).successors(Common.toQ(arrayType)).eval().nodes().getFirst();
+					Node arrayElementType = Query.universe().edges(XCSG.ArrayElementType).successors(Common.toQ(arrayType)).eval().nodes().one();
 					// the top dimension has already been addressed, so start at dimension minus 1
 					for(int i=arrayDimension-1; i>0; i--){
 						// map array dimension address to array dimension type
@@ -425,8 +425,8 @@ public class JavaPointsTo extends PointsTo {
 						assert(dfInvokeThisGraph.edges(to, NodeDirection.OUT).size() == 1);
 						
 						// get the callsite, method signature, and runtime types
-						GraphElement callsite = dfInvokeThisGraph.edges(to, NodeDirection.OUT).getFirst().getNode(EdgeDirection.TO);
-						GraphElement methodSignature = methodSignatureGraph.edges(callsite, NodeDirection.OUT).getFirst().getNode(EdgeDirection.TO);
+						GraphElement callsite = dfInvokeThisGraph.edges(to, NodeDirection.OUT).one().getNode(EdgeDirection.TO);
+						GraphElement methodSignature = methodSignatureGraph.edges(callsite, NodeDirection.OUT).one().getNode(EdgeDirection.TO);
 						
 						AtlasSet<GraphElement> runtimeTypes = new AtlasHashSet<GraphElement>();
 						for(Integer address : getPointsToSet(to)){

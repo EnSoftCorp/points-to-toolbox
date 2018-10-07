@@ -32,7 +32,7 @@ public class AnalysisUtilities {
 	 * @return
 	 */
 	public static Node statedType(GraphElement ge){
-		return Query.universe().edges(XCSG.TypeOf).successors(Common.toQ(ge)).eval().nodes().getFirst();
+		return Query.universe().edges(XCSG.TypeOf).successors(Common.toQ(ge)).eval().nodes().one();
 	}
 	
 	/**
@@ -73,7 +73,7 @@ public class AnalysisUtilities {
 	 */
 	public static Node getArrayTypeForDimension(GraphElement arrayElementType, int dimension){
 		Q arrayTypes = Query.universe().edges(XCSG.ArrayElementType).predecessors(Common.toQ(arrayElementType));
-		return arrayTypes.selectNode(Attr.Node.DIMENSION, dimension).eval().nodes().getFirst();
+		return arrayTypes.selectNode(Attr.Node.DIMENSION, dimension).eval().nodes().one();
 	}
 	
 	/**

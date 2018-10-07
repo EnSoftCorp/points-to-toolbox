@@ -84,7 +84,7 @@ public class SubtypeCache {
 		}
 
 		// add NullType as a subtype of every other type, to enable assignment compatibility
-		Node nullType = universe().nodes(XCSG.Java.NullType).eval().nodes().getFirst();
+		Node nullType = universe().nodes(XCSG.Java.NullType).eval().nodes().one();
 		supertypeClosure.put(nullType, supersetOfConcreteTypes);
 		
 		this.supertypes = supertypeClosure;
