@@ -10,6 +10,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.index.Index;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.pointsto.analysis.PointsTo;
@@ -35,7 +36,7 @@ public class GraphEnhancements {
 	
 	public static long tagInferredTypeOfEdges(PointsTo pointsTo){
 		long numEdgesAdded = 0;
-		Q typeOfEdges = Common.universe().edgesTaggedWithAny(XCSG.TypeOf);
+		Q typeOfEdges = Query.universe().edges(XCSG.TypeOf);
 		for(Node addressedNode : pointsTo.getAddressedNodes()){
 			for(Integer address : pointsTo.getAliasAddresses(addressedNode)){
 				Node type = pointsTo.getType(address);
@@ -52,19 +53,19 @@ public class GraphEnhancements {
 	public static long rewriteArrayComponents(PointsTo pointsTo){
 		arrayNumber = 1;
 		// first delete all array components
-		AtlasSet<Node> arrayComponents = Common.resolve(new NullProgressMonitor(), Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents)).eval().nodes();
+		AtlasSet<Node> arrayComponents = Common.resolve(new NullProgressMonitor(), Query.universe().nodes(XCSG.ArrayComponents)).eval().nodes();
 		for(GraphElement arrayComponent : arrayComponents){
 			Graph.U.delete(arrayComponent);
 		}
 		
 		// get all the array reads and writes that could potentially be matched
 		Q addressedObjects = Common.toQ(pointsTo.getAddressedNodes());
-		AtlasSet<Node> arrayReads = Common.resolve(new NullProgressMonitor(), addressedObjects.nodesTaggedWithAny(XCSG.ArrayRead)).eval().nodes();
-		AtlasSet<Node> arrayWrites = Common.resolve(new NullProgressMonitor(), addressedObjects.nodesTaggedWithAny(XCSG.ArrayWrite)).eval().nodes();
-		Q arrayIdentityForEdges = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
+		AtlasSet<Node> arrayReads = Common.resolve(new NullProgressMonitor(), addressedObjects.nodes(XCSG.ArrayRead)).eval().nodes();
+		AtlasSet<Node> arrayWrites = Common.resolve(new NullProgressMonitor(), addressedObjects.nodes(XCSG.ArrayWrite)).eval().nodes();
+		Q arrayIdentityForEdges = Query.universe().edges(XCSG.ArrayIdentityFor);
 		
 		// create a new array component for each array instantiation
-		Q arrayInstantiations = Common.universe().nodesTaggedWithAny(XCSG.ArrayInstantiation);
+		Q arrayInstantiations = Query.universe().nodes(XCSG.ArrayInstantiation);
 		for(Node arrayInstantiation : arrayInstantiations.eval().nodes()){
 			for(Integer address : pointsTo.getAliasAddresses(arrayInstantiation)){
 				findOrCreateArrayComponent(pointsTo, address);
@@ -105,7 +106,7 @@ public class GraphEnhancements {
 	
 	private static Node findOrCreateArrayComponent(PointsTo pointsTo, Integer address){
 		Q addressedObjects = Common.toQ(pointsTo.getAddressedNodes());
-		AtlasSet<Node> arrayComponents = addressedObjects.nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes();
+		AtlasSet<Node> arrayComponents = addressedObjects.nodes(XCSG.ArrayComponents).eval().nodes();
 		for(Node arrayComponent : arrayComponents){
 			if(pointsTo.getAliasAddresses(arrayComponent).contains(address)){
 				return arrayComponent;

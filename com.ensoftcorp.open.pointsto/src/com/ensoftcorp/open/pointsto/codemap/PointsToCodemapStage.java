@@ -2,7 +2,7 @@ package com.ensoftcorp.open.pointsto.codemap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import com.ensoftcorp.atlas.core.script.Common;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.commons.analysis.CommonQueries;
 import com.ensoftcorp.open.commons.codemap.PrioritizedCodemapStage;
@@ -44,12 +44,12 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 			if(PointsToPreferences.isPointsToAnalysisEnabled()){
 				PointsTo pointsToAnalysis = null;
 				if(PointsToPreferences.isJavaPointsToAnalysisModeEnabled()){
-					if(!CommonQueries.isEmpty(Common.universe().nodes(XCSG.Language.Java))) {
+					if(!CommonQueries.isEmpty(Query.universe().nodes(XCSG.Language.Java))) {
 						pointsToAnalysis = new JavaPointsTo();
 						pointsToAnalysis.run();
 					}
 				} else if(PointsToPreferences.isJimplePointsToAnalysisModeEnabled()){
-					if(!CommonQueries.isEmpty(Common.universe().nodes(XCSG.Language.Jimple))) {
+					if(!CommonQueries.isEmpty(Query.universe().nodes(XCSG.Language.Jimple))) {
 						pointsToAnalysis = new JimplePointsTo();
 						pointsToAnalysis.run();
 					}
@@ -58,7 +58,7 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 				// make some graph enhancements
 				if(pointsToAnalysis != null) {
 					if(PointsToPreferences.isArrayComponentTrackingEnabled() && PointsToPreferences.isRewriteArrayComponentsEnabled()){
-						long numArrayComponents = Common.universe().nodesTaggedWithAny(XCSG.ArrayComponents).eval().nodes().size();
+						long numArrayComponents = Query.universe().nodes(XCSG.ArrayComponents).eval().nodes().size();
 						long numRewrittenArrayComponents = GraphEnhancements.rewriteArrayComponents(pointsToAnalysis);
 						if(PointsToPreferences.isGeneralLoggingEnabled()) Log.info("Rewrote " + numArrayComponents + " array components to " + numRewrittenArrayComponents + " array components.");
 						

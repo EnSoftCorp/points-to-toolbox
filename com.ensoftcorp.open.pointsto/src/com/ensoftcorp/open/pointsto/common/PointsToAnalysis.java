@@ -8,6 +8,7 @@ import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.atlas.java.core.script.Common;
 
@@ -80,7 +81,7 @@ public class PointsToAnalysis {
 		if(address == 0){
 			return true;
 		} else {
-			return !Common.universe().nodesTaggedWithAny((ARRAY_MEMORY_MODEL_PREFIX + address), NULL_ARRAY_MEMORY_MODEL)
+			return !Query.universe().nodes((ARRAY_MEMORY_MODEL_PREFIX + address), NULL_ARRAY_MEMORY_MODEL)
 				.eval().nodes().isEmpty();
 		}
 	}
@@ -152,7 +153,7 @@ public class PointsToAnalysis {
 		if(tags.length == 0){
 			return new AtlasHashSet<Node>();
 		} else {
-			Q aliases = Common.universe().nodesTaggedWithAny(tags);
+			Q aliases = Query.universe().nodes(tags);
 			return new AtlasHashSet<Node>(aliases.eval().nodes());
 		}
 	}
@@ -207,7 +208,7 @@ public class PointsToAnalysis {
 		if(tags.length == 0){
 			return Common.empty();
 		} else {
-			Q aliases = Common.universe().nodesTaggedWithAny(tags);
+			Q aliases = Query.universe().nodes(tags);
 			return aliases;
 		}
 	}

@@ -8,6 +8,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.highlight.Highlighter;
 import com.ensoftcorp.atlas.core.markup.MarkupFromH;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.script.FrontierStyledResult;
 import com.ensoftcorp.atlas.core.script.StyledResult;
@@ -59,7 +60,7 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 			if(!useInferredDataFlow) {
 				aliasNodes.addAll(aliases.eval().nodes());
 			}
-			AtlasSet<Node> instantiations = aliases.nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation).eval().nodes();
+			AtlasSet<Node> instantiations = aliases.nodes(XCSG.Instantiation, XCSG.ArrayInstantiation).eval().nodes();
 			if(!instantiations.isEmpty()){
 				instantiationSet.addAll(instantiations);
 			} else {
@@ -70,10 +71,10 @@ public class PointsToAliasesSmartView extends FilteringAtlasSmartViewScript impl
 		Q inferredDF;
 		if(useInferredDataFlow) {
 			// this is easier to work with
-			inferredDF = Common.universe().edges(PointsToAnalysis.INFERRED_DATA_FLOW);
+			inferredDF = Query.universe().edges(PointsToAnalysis.INFERRED_DATA_FLOW);
 		} else {
 			// however if tagging was turned off we could fall back to inducing the edges from regular data flow
-			inferredDF = Common.toQ(aliasNodes).induce(Common.universe().edges(XCSG.DataFlow_Edge));
+			inferredDF = Common.toQ(aliasNodes).induce(Query.universe().edges(XCSG.DataFlow_Edge));
 		}
 		
 		Q instantations = Common.toQ(instantiationSet);

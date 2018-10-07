@@ -73,10 +73,10 @@ public class SubtypeCache {
 		// for (at least) all concrete types, cache the supertypes
 		CompactHashMap<Node, AtlasSet<Node>> supertypeClosure = new CompactHashMap<Node, AtlasSet<Node>>();
 
-		Q supersetOfConcreteTypesQ = universe().nodesTaggedWithAny(XCSG.Java.Class, XCSG.ArrayType);
+		Q supersetOfConcreteTypesQ = universe().nodes(XCSG.Java.Class, XCSG.ArrayType);
 		AtlasSet<Node> supersetOfConcreteTypes = Common.resolve(m, supersetOfConcreteTypesQ).eval().nodes();
 
-		Graph st = universe().edgesTaggedWithAny(XCSG.Supertype).eval();
+		Graph st = universe().edges(XCSG.Supertype).eval();
 		Iterator<Node> itr = supersetOfConcreteTypes.iterator();
 		while (itr.hasNext()) {
 			Node t = itr.next();
@@ -84,7 +84,7 @@ public class SubtypeCache {
 		}
 
 		// add NullType as a subtype of every other type, to enable assignment compatibility
-		Node nullType = universe().nodesTaggedWithAny(XCSG.Java.NullType).eval().nodes().getFirst();
+		Node nullType = universe().nodes(XCSG.Java.NullType).eval().nodes().getFirst();
 		supertypeClosure.put(nullType, supersetOfConcreteTypes);
 		
 		this.supertypes = supertypeClosure;

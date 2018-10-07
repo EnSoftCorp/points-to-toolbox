@@ -16,6 +16,7 @@ import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
 import com.ensoftcorp.atlas.core.query.Attr;
 import com.ensoftcorp.atlas.core.query.Q;
+import com.ensoftcorp.atlas.core.query.Query;
 import com.ensoftcorp.atlas.core.script.Common;
 import com.ensoftcorp.atlas.core.xcsg.XCSG;
 import com.ensoftcorp.open.java.commons.analysis.CommonQueries;
@@ -68,7 +69,7 @@ public class JimplePointsTo extends PointsTo {
 		}
 		isDisposed = true;
 		// remove the temporary attributes
-		AtlasSet<Node> addressedObjects = new AtlasHashSet<Node>(Common.universe().selectNode(POINTS_TO_SET).eval().nodes());
+		AtlasSet<Node> addressedObjects = new AtlasHashSet<Node>(Query.universe().selectNode(POINTS_TO_SET).eval().nodes());
 		while(!addressedObjects.isEmpty()){
 			Node addressedObject = addressedObjects.one();
 			addressedObject.removeAttr(POINTS_TO_SET);
@@ -131,7 +132,7 @@ public class JimplePointsTo extends PointsTo {
 		if(isDisposed){
 			throw new RuntimeException("Points-to analysis was disposed.");
 		}
-		return new AtlasHashSet<Node>(Common.universe().selectNode(POINTS_TO_SET).eval().nodes());
+		return new AtlasHashSet<Node>(Query.universe().selectNode(POINTS_TO_SET).eval().nodes());
 	}
 	
 	@Override
@@ -249,7 +250,7 @@ public class JimplePointsTo extends PointsTo {
 	private void seedFrontier() {
 		// set the first address (address 0) to be the null type
 		// technically there is no instantiation of null, but it can be useful to treat is as one
-		Node nullType = Common.universe().nodesTaggedWithAny(XCSG.Java.NullType).eval().nodes().getFirst();
+		Node nullType = Query.universe().nodes(XCSG.Java.NullType).eval().nodes().getFirst();
 		addressToInstantiation.put(NULL_TYPE_ADDRESS, nullType);
 		addressToType.put(NULL_TYPE_ADDRESS, nullType);
 		
@@ -257,9 +258,9 @@ public class JimplePointsTo extends PointsTo {
 		
 		// note: enum constants are instantiated in jimple in the <clinit> method, but in source it is implied
 		// create unique addresses for types of new statements and array instantiations
-		Q newRefs = Common.universe().nodesTaggedWithAny(XCSG.Instantiation, XCSG.ArrayInstantiation);
+		Q newRefs = Query.universe().nodes(XCSG.Instantiation, XCSG.ArrayInstantiation);
 		if(PointsToPreferences.isTrackPrimitivesEnabled()){
-			Q literalInstantiations = Common.universe().nodesTaggedWithAny(XCSG.Literal);
+			Q literalInstantiations = Query.universe().nodes(XCSG.Literal);
 			newRefs = newRefs.union(literalInstantiations);
 		}
 		
@@ -292,7 +293,7 @@ public class JimplePointsTo extends PointsTo {
 				if(PointsToPreferences.isArrayComponentTrackingEnabled() && statedType.hasAttr(Attr.Node.DIMENSION)){
 					Node arrayType = statedType;
 					int arrayDimension = (int) arrayType.getAttr(Attr.Node.DIMENSION);
-					Node arrayElementType = Common.universe().edgesTaggedWithAny(XCSG.ArrayElementType).successors(Common.toQ(arrayType)).eval().nodes().getFirst();
+					Node arrayElementType = Query.universe().edges(XCSG.ArrayElementType).successors(Common.toQ(arrayType)).eval().nodes().getFirst();
 					// the top dimension has already been addressed, so start at dimension minus 1
 					for(int i=arrayDimension-1; i>0; i--){
 						// map array dimension address to array dimension type
@@ -379,12 +380,12 @@ public class JimplePointsTo extends PointsTo {
 		
 		// create graphs and sets for resolving dynamic dispatches
 		AtlasHashSet<Node> dynamicCallsiteThisSet = AnalysisUtilities.getDynamicCallsiteThisSet(monitor);
-		Graph dfInvokeThisGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.IdentityPassedTo)).eval();
-		Graph methodSignatureGraph = Common.resolve(monitor, Common.universe().edgesTaggedWithAny(XCSG.InvokedFunction, XCSG.InvokedSignature)).eval();
+		Graph dfInvokeThisGraph = Common.resolve(monitor, Query.universe().edges(XCSG.IdentityPassedTo)).eval();
+		Graph methodSignatureGraph = Common.resolve(monitor, Query.universe().edges(XCSG.InvokedFunction, XCSG.InvokedSignature)).eval();
 
 		// create graphs for performing array analysis
-		Q arrayAccess = Common.universe().nodesTaggedWithAny(XCSG.ArrayAccess);
-		Q arrayIdentityFor = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor);
+		Q arrayAccess = Query.universe().nodes(XCSG.ArrayAccess);
+		Q arrayIdentityFor = Query.universe().edges(XCSG.ArrayIdentityFor);
 		AtlasSet<Node> arrayReferences = arrayIdentityFor.predecessors(arrayAccess).eval().nodes();
 		
 		// iteratively propagate points-to information until a fixed point is reached
@@ -537,8 +538,8 @@ public class JimplePointsTo extends PointsTo {
 	private AtlasHashSet<Edge> createDataFlowSummaryEdges(Q methods) {
 		AtlasHashSet<Edge> summaryEdges = new AtlasHashSet<Edge>();
 		for(Node method : methods.eval().nodes()){
-			Q parameters = Common.toQ(method).contained().nodesTaggedWithAny(XCSG.Parameter);
-			Q returnValues = Common.toQ(method).contained().nodesTaggedWithAny(XCSG.ReturnValue);
+			Q parameters = Common.toQ(method).contained().nodes(XCSG.Parameter);
+			Q returnValues = Common.toQ(method).contained().nodes(XCSG.ReturnValue);
 			for(Node parameter : parameters.eval().nodes()){
 				for(Node returnValue : returnValues.eval().nodes()){
 					Edge summaryEdge = Graph.U.createEdge(parameter, returnValue);
@@ -602,8 +603,8 @@ public class JimplePointsTo extends PointsTo {
 					// add the AW addresses to the the array memory values set for the array REFW address
 					if(arrayMemoryModel.get(arrayWriteReferenceAddress).addAll(getPointsToSet(arrayWrite))){
 						// if new addresses were added to the array, propagate them to the corresponding reads
-						Q allArrayReads = Common.universe().nodesTaggedWithAny(XCSG.ArrayRead);
-						Q allArrayReadReferences = Common.universe().edgesTaggedWithAny(XCSG.ArrayIdentityFor).predecessors(allArrayReads);
+						Q allArrayReads = Query.universe().nodes(XCSG.ArrayRead);
+						Q allArrayReadReferences = Query.universe().edges(XCSG.ArrayIdentityFor).predecessors(allArrayReads);
 						for(Node arrayReadReference : allArrayReadReferences.eval().nodes()){
 							HashSet<Integer> arrayReadReferenceAddresses = getPointsToSet(arrayReadReference);
 							if(arrayReadReferenceAddresses.contains(arrayWriteReferenceAddress)){
