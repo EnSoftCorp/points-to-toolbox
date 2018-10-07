@@ -42,10 +42,22 @@ SOFTWARE.
       <import feature="com.ensoftcorp.open.jimple.commons.feature" version="3.3.7.qualifier"/>
       <import feature="com.ensoftcorp.open.java.commons.feature" version="3.3.7.qualifier"/>
       <import feature="com.ensoftcorp.open.commons.feature" version="3.3.7.qualifier"/>
+      <import plugin="com.ensoftcorp.open.commons" version="3.3.7" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.open.java.commons" version="3.3.7" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.open.jimple.commons" version="3.3.7" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.open.pointsto" version="3.3.7" match="greaterOrEqual"/>
+      <import plugin="com.ensoftcorp.open.commons.ui" version="3.3.7" match="greaterOrEqual"/>
    </requires>
 
    <plugin
          id="com.ensoftcorp.open.pointsto"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.ensoftcorp.open.pointsto.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"
