@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Points-to Toolbox User Interface
+Bundle-SymbolicName: com.ensoftcorp.open.pointsto.ui;singleton:=true
+Bundle-Version: 3.3.7.qualifier
+Bundle-Vendor: EnSoft Corp.
+Require-Bundle: net.ontopia.utils;bundle-version="5.2.2",
+ com.ensoftcorp.open.pointsto;bundle-version="3.3.7",
+ com.ensoftcorp.open.commons.ui;bundle-version="3.3.7"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Bundle-Activator: com.ensoftcorp.open.pointsto.ui.Activator
+Automatic-Module-Name: com.ensoftcorp.open.pointsto.ui

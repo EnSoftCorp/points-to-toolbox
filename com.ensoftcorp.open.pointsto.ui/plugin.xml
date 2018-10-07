@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!-- create a preferences page for points-to toolbox -->
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.ensoftcorp.open.pointsto.ui.PointsToPreferencesPage"
+            id="com.ensoftcorp.open.pointsto.ui.preferences"
+            name="Points-To Analysis"
+            category="com.ensoftcorp.open.commons.ui.toolbox.preferences">
+      </page>
+   </extension>
+
+   <!-- add points-to smart views -->
+   <extension point="com.ensoftcorp.atlas.ui.smartViewScript">
+      <script class="com.ensoftcorp.open.pointsto.ui.smart.PointsToAliasesSmartView" />
+      <script class="com.ensoftcorp.open.pointsto.ui.smart.PointsToArrayComponentAliasesSmartView" />
+   </extension>
+
+</plugin>
