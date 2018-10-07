@@ -6,7 +6,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            class="com.ensoftcorp.open.pointsto.ui.PointsToPreferencesPage"
+            class="com.ensoftcorp.open.pointsto.ui.preferences.PointsToPreferencesPage"
             id="com.ensoftcorp.open.pointsto.ui.preferences"
             name="Points-To Analysis"
             category="com.ensoftcorp.open.commons.ui.toolbox.preferences">
