@@ -8,7 +8,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
@@ -95,7 +94,7 @@ public class SubtypeCache {
 		closure.add(t);
 		AtlasSet<Edge> edges = SupertypeGraph.edges(t, NodeDirection.OUT);
 		for (Edge edgeSupertype : edges) {
-			Node supertype = edgeSupertype.getNode(EdgeDirection.TO);
+			Node supertype = edgeSupertype.to();
 			AtlasSet<Node> superClosure = supertypeClosure.get(supertype);
 			if (superClosure == null) {
 				superClosure = getClosure(supertypeClosure, SupertypeGraph, supertype);

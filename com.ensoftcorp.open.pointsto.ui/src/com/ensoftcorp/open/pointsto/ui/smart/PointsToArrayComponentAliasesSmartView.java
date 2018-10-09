@@ -2,7 +2,6 @@ package com.ensoftcorp.open.pointsto.ui.smart;
 
 import java.awt.Color;
 
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -51,8 +50,8 @@ public class PointsToArrayComponentAliasesSmartView extends FilteringAtlasSmartV
 		
 		boolean useInferredDataFlow = PointsToPreferences.isTagInferredDataflowsEnabled();
 		
-		AtlasSet<GraphElement> arrayComponentsSet = new AtlasHashSet<GraphElement>();
-		AtlasSet<GraphElement> arrayComponentsInstantiationSet = new AtlasHashSet<GraphElement>();
+		AtlasSet<Node> arrayComponentsSet = new AtlasHashSet<Node>();
+		AtlasSet<Node> arrayComponentsInstantiationSet = new AtlasHashSet<Node>();
 		AtlasSet<Node> aliasNodes = new AtlasHashSet<Node>();
 		for(Node node : filteredSelection.eval().nodes()){
 			Q aliases = PointsToAnalysis.getAliases(node);

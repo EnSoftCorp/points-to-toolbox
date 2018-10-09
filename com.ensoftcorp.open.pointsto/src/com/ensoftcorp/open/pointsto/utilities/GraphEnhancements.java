@@ -4,7 +4,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.set.AtlasHashSet;
 import com.ensoftcorp.atlas.core.db.set.AtlasSet;
@@ -54,7 +53,7 @@ public class GraphEnhancements {
 		arrayNumber = 1;
 		// first delete all array components
 		AtlasSet<Node> arrayComponents = Common.resolve(new NullProgressMonitor(), Query.universe().nodes(XCSG.ArrayComponents)).eval().nodes();
-		for(GraphElement arrayComponent : arrayComponents){
+		for(Node arrayComponent : arrayComponents){
 			Graph.U.delete(arrayComponent);
 		}
 		
@@ -76,9 +75,9 @@ public class GraphEnhancements {
 		for(Node arrayWrite : arrayWrites){
 			Node array = arrayIdentityForEdges.predecessors(Common.toQ(arrayWrite)).eval().nodes().one();
 			for(Integer address : pointsTo.getAliasAddresses(array)){
-				GraphElement arrayComponent = findOrCreateArrayComponent(pointsTo, address);
+				Node arrayComponent = findOrCreateArrayComponent(pointsTo, address);
 				// create interprocedural data flow edge from array write node to array component node
-				GraphElement arrayWriteEdge = Graph.U.createEdge(arrayWrite, arrayComponent);
+				Edge arrayWriteEdge = Graph.U.createEdge(arrayWrite, arrayComponent);
 				arrayWriteEdge.tag(XCSG.InterproceduralDataFlow);
 				arrayWriteEdge.tag(Index.INDEX_VIEW_TAG);
 				arrayWriteEdge.tag(PointsToAnalysis.INFERRED_DATA_FLOW);
@@ -92,7 +91,7 @@ public class GraphEnhancements {
 			for(Integer address : pointsTo.getAliasAddresses(array)){
 				Node arrayComponent = findOrCreateArrayComponent(pointsTo, address);
 				// create interprocedural data flow edge from array component node to array read node
-				GraphElement arrayReadEdge = Graph.U.createEdge(arrayComponent, arrayRead);
+				Edge arrayReadEdge = Graph.U.createEdge(arrayComponent, arrayRead);
 				arrayReadEdge.tag(XCSG.InterproceduralDataFlow);
 				arrayReadEdge.tag(Index.INDEX_VIEW_TAG);
 				arrayReadEdge.tag(PointsToAnalysis.INFERRED_DATA_FLOW);

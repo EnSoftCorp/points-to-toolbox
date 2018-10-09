@@ -2,9 +2,8 @@ package com.ensoftcorp.open.pointsto.utilities;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.NodeGraph;
@@ -31,8 +30,8 @@ public class AnalysisUtilities {
 	 * @param ge
 	 * @return
 	 */
-	public static Node statedType(GraphElement ge){
-		return Query.universe().edges(XCSG.TypeOf).successors(Common.toQ(ge)).eval().nodes().one();
+	public static Node statedType(Node node){
+		return Query.universe().edges(XCSG.TypeOf).successors(Common.toQ(node)).eval().nodes().one();
 	}
 	
 	/**
@@ -40,7 +39,7 @@ public class AnalysisUtilities {
 	 * @param arrayReference
 	 * @return
 	 */
-	public static AtlasSet<Node> getArrayReadAccessesForArrayReference(GraphElement arrayReference) {
+	public static AtlasSet<Node> getArrayReadAccessesForArrayReference(Node arrayReference) {
 		Q arrayIdentityFor = Query.universe().edges(XCSG.ArrayIdentityFor);
 		return arrayIdentityFor.successors(Common.toQ(arrayReference)).nodes(XCSG.ArrayRead).eval().nodes();
 	}
@@ -50,7 +49,7 @@ public class AnalysisUtilities {
 	 * @param arrayReference
 	 * @return
 	 */
-	public static AtlasSet<Node> getArrayWriteAccessesForArrayReference(GraphElement arrayReference) {
+	public static AtlasSet<Node> getArrayWriteAccessesForArrayReference(Node arrayReference) {
 		Q arrayIdentityFor = Query.universe().edges(XCSG.ArrayIdentityFor);
 		return arrayIdentityFor.successors(Common.toQ(arrayReference)).nodes(XCSG.ArrayWrite).eval().nodes();
 	}
@@ -60,7 +59,7 @@ public class AnalysisUtilities {
 	 * @param arrayAccess
 	 * @return
 	 */
-	public static AtlasSet<Node> getArrayReferencesForArrayAccess(GraphElement arrayAccess){
+	public static AtlasSet<Node> getArrayReferencesForArrayAccess(Node arrayAccess){
 		Q arrayIdentityFor = Query.universe().edges(XCSG.ArrayIdentityFor);
 		return arrayIdentityFor.predecessors(Common.toQ(arrayAccess)).eval().nodes();
 	}
@@ -71,7 +70,7 @@ public class AnalysisUtilities {
 	 * @param dimension
 	 * @return
 	 */
-	public static Node getArrayTypeForDimension(GraphElement arrayElementType, int dimension){
+	public static Node getArrayTypeForDimension(Node arrayElementType, int dimension){
 		Q arrayTypes = Query.universe().edges(XCSG.ArrayElementType).predecessors(Common.toQ(arrayElementType));
 		return arrayTypes.selectNode(Attr.Node.DIMENSION, dimension).eval().nodes().one();
 	}
@@ -145,7 +144,7 @@ public class AnalysisUtilities {
 		AtlasSet<Node> rootSet = new AtlasHashSet<Node>();
 		
 		Graph edgeContextG = edgeContext.eval();
-		for(GraphElement node : nodeSet){
+		for(Node node : nodeSet){
 			if(edgeContextG.edges(node, NodeDirection.IN).isEmpty()){
 				rootSet.add(node);
 			}
@@ -178,10 +177,10 @@ public class AnalysisUtilities {
 	public static AtlasSet<Node> getSignatureSet(AtlasSet<Node> methods){
 		Graph declaresGraph = Query.universe().edges(XCSG.Contains).retainEdges().eval();
 		AtlasSet<Node> signatureSet = new AtlasHashSet<Node>();
-		for(GraphElement method : methods){
+		for(Node method : methods){
 			AtlasSet<Node> cached = new AtlasHashSet<Node>();
-			for(GraphElement outDeclares : declaresGraph.edges(method, NodeDirection.OUT)){
-				Node declares = outDeclares.getNode(EdgeDirection.TO);
+			for(Edge outDeclares : declaresGraph.edges(method, NodeDirection.OUT)){
+				Node declares = outDeclares.to();
 				if(declares.taggedWith(XCSG.Parameter) || declares.taggedWith(XCSG.Identity) || declares.taggedWith(XCSG.ReturnValue)){
 					cached.add(declares);
 				}

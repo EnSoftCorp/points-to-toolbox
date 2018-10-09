@@ -7,8 +7,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import com.ensoftcorp.atlas.core.db.graph.Address;
 import com.ensoftcorp.atlas.core.db.graph.Edge;
 import com.ensoftcorp.atlas.core.db.graph.Graph;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement;
-import com.ensoftcorp.atlas.core.db.graph.GraphElement.EdgeDirection;
 import com.ensoftcorp.atlas.core.db.graph.GraphElement.NodeDirection;
 import com.ensoftcorp.atlas.core.db.graph.Node;
 import com.ensoftcorp.atlas.core.db.graph.UncheckedGraph;
@@ -213,8 +211,8 @@ public class JimplePointsTo extends PointsTo {
 	 * transitive closure.
 	 */
 	private Graph dfGraph;
-	private AtlasSet<GraphElement> dfNodes = new AtlasHashSet<GraphElement>();
-	private AtlasSet<GraphElement> dfEdges = new AtlasHashSet<GraphElement>();
+	private AtlasSet<Node> dfNodes = new AtlasHashSet<Node>();
+	private AtlasSet<Edge> dfEdges = new AtlasHashSet<Edge>();
 	
 	public JimplePointsTo() {
 		if(PointsToPreferences.isPointsToAnalysisFIFOFrontierMode()) {
@@ -364,9 +362,9 @@ public class JimplePointsTo extends PointsTo {
 		// create the initial underlying data flow graph that will get dynamically
 		// updated as new dynamic dispatches are resolved
 		Q conservativeDF = AnalysisUtilities.getConservativeDataFlow(monitor);
-		dfEdges = new AtlasHashSet<GraphElement>();
+		dfEdges = new AtlasHashSet<Edge>();
 		dfEdges.addAll(conservativeDF.eval().edges());
-		dfNodes = new AtlasHashSet<GraphElement>();
+		dfNodes = new AtlasHashSet<Node>();
 		dfNodes.addAll(conservativeDF.eval().nodes());
 		dfGraph = new UncheckedGraph(dfNodes, dfEdges);
 		
@@ -401,8 +399,8 @@ public class JimplePointsTo extends PointsTo {
 			AtlasSet<Edge> outEdges = dfGraph.edges(from, NodeDirection.OUT);
 
 			// propagate points-to information aInteger each outgoing data flow edge
-			for(GraphElement edge : outEdges){
-				Node to = edge.getNode(EdgeDirection.TO);
+			for(Edge edge : outEdges){
+				Node to = edge.to();
 
 				// transfer type-compatible points-to information from the "from" node to the "to" node
 				if(transferTypeCompatibleAddresses(from, to)){
@@ -422,10 +420,10 @@ public class JimplePointsTo extends PointsTo {
 						assert(dfInvokeThisGraph.edges(to, NodeDirection.OUT).size() == 1);
 						
 						// get the callsite, method signature, and runtime types
-						GraphElement callsite = dfInvokeThisGraph.edges(to, NodeDirection.OUT).one().getNode(EdgeDirection.TO);
-						GraphElement methodSignature = methodSignatureGraph.edges(callsite, NodeDirection.OUT).one().getNode(EdgeDirection.TO);
+						Node callsite = dfInvokeThisGraph.edges(to, NodeDirection.OUT).one().to();
+						Node methodSignature = methodSignatureGraph.edges(callsite, NodeDirection.OUT).one().to();
 						
-						AtlasSet<GraphElement> runtimeTypes = new AtlasHashSet<GraphElement>();
+						AtlasSet<Node> runtimeTypes = new AtlasHashSet<Node>();
 						for(Integer address : getPointsToSet(to)){
 							runtimeTypes.add(addressToType.get(address));
 						}
@@ -439,13 +437,13 @@ public class JimplePointsTo extends PointsTo {
 						Address csid = (Address) callsite.getAttr(Attr.Node.CALL_SITE_ID);
 	
 						// for each resolved dispatch we need to update the data flow graph for the next iteration
-						for(GraphElement resolvedEdge : Graph.U.edges().filter(Attr.Edge.CALL_SITE_ID, csid)){
-							if(signatureSet.contains(resolvedEdge.getNode(EdgeDirection.TO)) || signatureSet.contains(resolvedEdge.getNode(EdgeDirection.FROM))){
+						for(Edge resolvedEdge : Graph.U.edges().filter(Attr.Edge.CALL_SITE_ID, csid)){
+							if(signatureSet.contains(resolvedEdge.to()) || signatureSet.contains(resolvedEdge.from())){
 								// add the edge and update the node sets if the edge doesn't already exist in the graph
 								if(dfEdges.add(resolvedEdge)){
 									// add node endpoints for the edge to graph to keep graph well-formed
-									Node dest = resolvedEdge.getNode(EdgeDirection.TO);
-									Node origin = resolvedEdge.getNode(EdgeDirection.FROM);
+									Node dest = resolvedEdge.to();
+									Node origin = resolvedEdge.from();
 									dfNodes.add(dest);
 									dfNodes.add(origin);
 									
