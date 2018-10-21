@@ -39,9 +39,10 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 	}
 
 	@Override
-	public void performIndexing(IProgressMonitor monitor) {
+	public boolean performIndexing(IProgressMonitor monitor) {
+		boolean runIndexer = PointsToPreferences.isPointsToAnalysisEnabled();
 		try {
-			if(PointsToPreferences.isPointsToAnalysisEnabled()){
+			if(runIndexer){
 				PointsTo pointsToAnalysis = null;
 				if(PointsToPreferences.isJavaPointsToAnalysisModeEnabled()){
 					if(!CommonQueries.isEmpty(Query.universe().nodes(XCSG.Language.Java))) {
@@ -84,6 +85,7 @@ public class PointsToCodemapStage extends PrioritizedCodemapStage {
 		} catch (Exception e) {
 			Log.error("Error performing points-to analysis", e);
 		}
+		return runIndexer;
 	}
 
 }

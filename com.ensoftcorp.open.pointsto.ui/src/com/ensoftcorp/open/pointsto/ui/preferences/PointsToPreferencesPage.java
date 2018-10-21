@@ -11,7 +11,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import com.ensoftcorp.open.commons.ui.components.LabelFieldEditor;
 import com.ensoftcorp.open.commons.ui.components.SpacerFieldEditor;
 import com.ensoftcorp.open.pointsto.preferences.PointsToPreferences;
-import com.ensoftcorp.open.pointsto.ui.Activator;
 
 /**
  * UI for setting points-to analysis preferences
@@ -46,7 +45,7 @@ public class PointsToPreferencesPage extends FieldEditorPreferencePage implement
 
 	@Override
 	public void init(IWorkbench workbench) {
-		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
+		IPreferenceStore preferences = PointsToPreferences.getPreferenceStore();
 		setPreferenceStore(preferences);
 		setDescription("Configure preferences for the Points-to Analysis Toolbox plugin.");
 
