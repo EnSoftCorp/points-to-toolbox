@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Points-to Toolbox
 Bundle-SymbolicName: com.ensoftcorp.open.pointsto;singleton:=true
-Bundle-Version: 3.6.0.qualifier
+Bundle-Version: 3.9.2.qualifier
 Bundle-Vendor: EnSoft Corp.
-Require-Bundle: com.ensoftcorp.open.commons;bundle-version="3.6.0",
- com.ensoftcorp.open.java.commons;bundle-version="3.6.0",
- com.ensoftcorp.open.jimple.commons;bundle-version="3.6.0",
+Require-Bundle: com.ensoftcorp.open.commons;bundle-version="3.9.2",
+ com.ensoftcorp.open.java.commons;bundle-version="3.9.2",
+ com.ensoftcorp.open.jimple.commons;bundle-version="3.9.2",
  net.ontopia.utils;bundle-version="5.2.2"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
